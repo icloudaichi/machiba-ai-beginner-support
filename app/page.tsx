@@ -4,11 +4,67 @@ import { useState } from "react";
 
 const pages = [
   ["00", "はじめに"],
+  ["CATALOG", "できること"],
   ["01", "道具をそろえる"],
   ["02", "仕組みを知る"],
   ["03", "話してつくる"],
   ["04", "当日の流れ"],
   ["05", "困ったとき"],
+] as const;
+
+const catalogCases = [
+  {
+    number: "01",
+    category: "連絡をまとめる",
+    title: "メールと公式LINEを、\n一つの場所で確認したい",
+    lead: "届いた連絡を一覧にして、AIに返信案を考えてもらいます。最後に送るかどうかを決めるのは、あなたです。",
+    services: ["Gmail API", "LINE Messaging API", "AI", "Cloudflare"],
+    steps: ["新着を集める", "AIが要点を読む", "返信案をつくる", "確認して送る"],
+    features: ["未対応だけを表示", "相手ごとの履歴", "返信文の言い換え", "対応済みの記録"],
+    starter: "架空のメール・LINEを並べ、返信案を保存できる受信箱から始めます。",
+    note: "Gmailへの利用許可とLINE公式アカウントを、AIの案内で一度設定します。",
+    tone: "mail",
+    page: 5,
+  },
+  {
+    number: "02",
+    category: "連絡を仕事に変える",
+    title: "メールやChatworkから、\nやることを整理したい",
+    lead: "連絡の中から『誰が・何を・いつまでに』をAIが見つけ、あなた専用のタスク一覧へまとめます。",
+    services: ["Gmail API", "Chatwork API", "各種MCP", "Cloudflare"],
+    steps: ["連絡を受け取る", "タスク候補を抽出", "期限を確認する", "一覧で管理する"],
+    features: ["今日やること", "期限が近い順", "元メッセージへ戻る", "完了・保留の管理"],
+    starter: "サンプルの連絡文を貼ると、タスク候補を一覧にできるアプリから始めます。",
+    note: "使いたいサービスを決め、APIやMCPの接続をAIと一つずつ設定します。",
+    tone: "task",
+    page: 6,
+  },
+  {
+    number: "03",
+    category: "発信を続ける",
+    title: "XなどのSNS投稿を、\n準備・予約・自動化したい",
+    lead: "伝えたい材料からAIが投稿案を作り、確認した文章を予約して、決めた時間に投稿できるようにします。",
+    services: ["X API", "SNS連携MCP", "AI", "Cloudflare"],
+    steps: ["材料をためる", "投稿案をつくる", "内容を確認する", "予約して投稿する"],
+    features: ["投稿カレンダー", "文章の長さ調整", "確認待ち一覧", "投稿結果の記録"],
+    starter: "テーマを入れると3つの投稿案が出て、採用案をカレンダーへ置ける画面から始めます。",
+    note: "SNSの利用条件を確認し、必要な開発者登録や接続設定をAIと一緒に進めます。",
+    tone: "social",
+    page: 7,
+  },
+  {
+    number: "04",
+    category: "自分専用のAI秘書",
+    title: "経費・請求書・予定を、\n一つの秘書画面で見たい",
+    lead: "Googleのメール、ドライブ、カレンダー、表計算をつなぎ、今日確認することをAIが整理します。",
+    services: ["Gmail", "Google Drive", "Calendar / Sheets", "Cloudflare"],
+    steps: ["資料を見つける", "内容を整理する", "期限を知らせる", "あなたが判断する"],
+    features: ["請求書の確認待ち", "支払期限の一覧", "予定と準備物", "今月の経費メモ"],
+    starter: "架空の請求書と予定を使い、今日確認することを表示する秘書画面から始めます。",
+    note: "Googleアカウントでアプリに許可する範囲を選び、AIと一度接続します。重要な判断は本人が行います。",
+    tone: "secretary",
+    page: 8,
+  },
 ] as const;
 
 function PageNumber({ value }: { value: number }) {
@@ -33,6 +89,47 @@ function Chapter({ number, title, subtitle, tone }: { number: string; title: str
       <h2>{title}</h2>
       <p className="chapter-subtitle">{subtitle}</p>
       <div className="chapter-dots" aria-hidden="true">● ● ●</div>
+    </section>
+  );
+}
+
+function CatalogPage({ item }: { item: (typeof catalogCases)[number] }) {
+  return (
+    <section className={`sheet catalog-page ${item.tone}`}>
+      <div className="catalog-heading">
+        <span className="catalog-number">CASE {item.number}</span>
+        <p>{item.category}</p>
+      </div>
+      <h2>{item.title.split("\n").map((line, index) => <span key={line}>{line}{index === 0 && <br />}</span>)}</h2>
+      <p className="lead small">{item.lead}</p>
+
+      <div className="catalog-services" aria-label="利用するサービス">
+        {item.services.map((service, index) => (
+          <div key={service}>
+            <b>{service}</b>
+            {index < item.services.length - 1 && <span>＋</span>}
+          </div>
+        ))}
+      </div>
+
+      <div className="catalog-flow">
+        {item.steps.map((step, index) => (
+          <div key={step}><span>{index + 1}</span><b>{step}</b></div>
+        ))}
+      </div>
+
+      <div className="catalog-bottom">
+        <div className="catalog-features">
+          <h3>できること</h3>
+          {item.features.map(feature => <p key={feature}>✓ {feature}</p>)}
+        </div>
+        <div className="catalog-starter">
+          <h3>講座での最初の一歩</h3>
+          <p>{item.starter}</p>
+        </div>
+      </div>
+      <div className="catalog-note"><b>最初につなぐ準備</b><p>{item.note}</p></div>
+      <PageNumber value={item.page} />
     </section>
   );
 }
@@ -108,6 +205,29 @@ export default function Home() {
           <PageNumber value={3} />
         </section>
 
+        <Chapter number="CATALOG" title="こんなアプリがつくれます" subtitle="まずはCloudflareに、自分専用の小さな仕事場を。必要になったら、普段使っているサービスとつなぎます。" tone="catalog-tone" />
+
+        {catalogCases.map(item => <CatalogPage key={item.number} item={item} />)}
+
+        <section className="sheet connection-page">
+          <p className="eyebrow green">サービスとの接続</p>
+          <h2>つなぐ準備は、<em>最初に一度。</em><br />つながった後は、いつもの画面から。</h2>
+          <p className="lead small">最初はログインや利用許可など、サービスごとの準備があります。そこはCodexに画面を見てもらいながら、一つずつ進めます。</p>
+          <div className="connection-setup">
+            <div><span>1</span><b>使いたいものを話す</b><p>「GmailとLINEをまとめたい」のように、目的を伝えます。</p></div>
+            <i>→</i>
+            <div><span>2</span><b>AIと一緒につなぐ</b><p>必要な登録、ログイン、利用許可を順番に設定します。</p></div>
+            <i>→</i>
+            <div><span>3</span><b>一度、動きを確かめる</b><p>テスト用の情報で、届く・保存できる・表示できるを確認します。</p></div>
+          </div>
+          <div className="connected-state">
+            <div className="connected-icon">✓</div>
+            <div><p className="connected-kicker">つながった後</p><h3>自分専用アプリを開けば、同じ仕事が動きます</h3><p>毎回むずかしい設定をやり直すのではなく、メールを見る、タスクを整理する、返信案を作るといった仕事を、同じ画面から繰り返し使えます。</p></div>
+          </div>
+          <div className="reconnect-note">サービス側の仕様変更やログイン期限が切れたときは、AIと一緒に再接続します。</div>
+          <PageNumber value={9} />
+        </section>
+
         <Chapter number="01" title="まず、道具をそろえよう" subtitle="登録は一つずつ。分からない画面はAIに聞きながら進めます。" tone="yellow" />
 
         <section className="sheet howto">
@@ -124,7 +244,7 @@ export default function Home() {
           </div>
           <div className="check-row"><span>□</span>ログインできる <span>□</span>Gmailを受け取れる <span>□</span>自分だけがパスワードを知っている</div>
           <Point>パスワードや確認コードは、講師やAIへ送らず、自分の画面だけに入力します。</Point>
-          <PageNumber value={5} />
+          <PageNumber value={11} />
         </section>
 
         <section className="sheet choose-ai">
@@ -136,7 +256,7 @@ export default function Home() {
             <article><div className="choice-logo coral">A</div><h3>Claude デスクトップ</h3><strong>制作：Claude Code</strong><p>Claudeを普段から使っている人はこちらでも進められます。</p></article>
           </div>
           <Point>AIの名前を覚えることが目的ではありません。「相談する場所」と「実際に作業する場所」がある、と分かれば十分です。</Point>
-          <PageNumber value={6} />
+          <PageNumber value={12} />
         </section>
 
         <section className="sheet accounts">
@@ -153,7 +273,7 @@ export default function Home() {
             </article>
           </div>
           <div className="mini-tip"><b>登録で止まったら</b><p>画面のスクリーンショットを撮り、秘密の文字を隠してからAI相談室へ見せます。</p></div>
-          <PageNumber value={7} />
+          <PageNumber value={13} />
         </section>
 
         <Chapter number="02" title="アプリの仕組みを知ろう" subtitle="サービス名を暗記せず、まず「何の役割か」を見ていきます。" tone="blue" />
@@ -170,7 +290,7 @@ export default function Home() {
           </div>
           <div className="example-strip"><b>たとえば予約アプリなら</b><span>予約画面</span><i>＋</i><span>空き時間を探す動き</span><i>＋</i><span>予約内容</span></div>
           <Point>作りたいものを話すときも、この3つを順番に考えると伝わりやすくなります。</Point>
-          <PageNumber value={9} />
+          <PageNumber value={15} />
         </section>
 
         <section className="sheet roles">
@@ -184,7 +304,7 @@ export default function Home() {
             <div className="flow-db"><b>情報の倉庫</b><small>必要な情報を保存</small></div>
           </div>
           <div className="house-note"><span>⌂</span><div><b>家づくりに例えると</b><p>あなたが施主、AIが相談相手と現場担当。設計図を保管し、土地に家を建て、倉庫へ物をしまいます。アプリは完成後も気軽に作り直せます。</p></div></div>
-          <PageNumber value={10} />
+          <PageNumber value={16} />
         </section>
 
         <section className="sheet services">
@@ -200,7 +320,7 @@ export default function Home() {
           </div>
           <div className="google-link"><b>Googleの道具</b><p>カレンダー、スプレッドシート、ドライブなどは、必要になったときにアプリとつなぎます。</p></div>
           <Point>最初から全部を自分で操作しません。Codexが作業し、あなたは質問に答え、結果を見て希望を伝えます。</Point>
-          <PageNumber value={11} />
+          <PageNumber value={17} />
         </section>
 
         <section className="sheet rooms">
@@ -212,7 +332,7 @@ export default function Home() {
             <article className="work-room"><span>作品ごとに作る</span><div className="room-icon">⌘</div><h3>制作室</h3><p>フォルダを開く。必要な道具を確認する。ファイルを作り、動かし、公開する。</p><b>アプリごとに別のタスク</b></article>
           </div>
           <div className="pin-prompt"><b>最初に作る名前</b><code>AI相談室｜はじめてのアプリづくり</code><p>あとで迷わないように、ピン留めしておきます。</p></div>
-          <PageNumber value={12} />
+          <PageNumber value={18} />
         </section>
 
         <Chapter number="03" title="話して、つくって、確かめよう" subtitle="きれいに話す必要はありません。材料をたくさん渡すことが大切です。" tone="green-tone" />
@@ -228,7 +348,7 @@ export default function Home() {
             ].map(([key, text], i) => <div key={key}><span>{i + 1}</span><b>{key}</b><p>{text}</p></div>)}
           </div>
           <blockquote>今話した内容を整理してください。分からないところがあれば、一度に一つずつ質問してください。</blockquote>
-          <PageNumber value={14} />
+          <PageNumber value={20} />
         </section>
 
         <section className="sheet loop">
@@ -242,7 +362,7 @@ export default function Home() {
             <div className="loop-item l4"><b>4 確かめる</b><p>動かして確認する</p></div>
           </div>
           <div className="remodel"><span>⌂</span><p><b>完璧な家も、一度の相談では決まりません。</b><br />モデルルームを見たり、間取りを直したりするように、アプリも見てから考えて大丈夫です。</p></div>
-          <PageNumber value={15} />
+          <PageNumber value={21} />
         </section>
 
         <section className="sheet patterns">
@@ -254,7 +374,7 @@ export default function Home() {
             <article><span>03</span><div><h3>インターネットで使う</h3><p>どこからでも開きたい。情報を保存し、他の人にも使ってもらいたいとき。</p></div><b>クラウド</b></article>
           </div>
           <Point>どれを選ぶか分からないときは「私の場合はどれがおすすめ？」とAI相談室へ聞けば大丈夫です。</Point>
-          <PageNumber value={16} />
+          <PageNumber value={22} />
         </section>
 
         <Chapter number="04" title="当日の流れ" subtitle="2026年8月23日 13:00〜18:00｜全員の目標は「相談して、一つ変える」まで。" tone="orange-tone" />
@@ -272,7 +392,7 @@ export default function Home() {
             <div><time>17:25</time><span /><p><b>公開・振り返り</b>できる人は公開URLを確認</p></div>
           </div>
           <div className="must-goal"><b>全員の成功</b><span>相談室を作る</span><span>アカウントを準備</span><span>アプリを一つ変える</span></div>
-          <PageNumber value={18} />
+          <PageNumber value={24} />
         </section>
 
         <section className="sheet safety">
@@ -283,7 +403,7 @@ export default function Home() {
             <article className="unsafe"><h3>× AIへ貼らないもの</h3><ul><li>パスワード・確認コード</li><li>カード情報・秘密鍵</li><li>本物のお客様情報</li><li>公開してはいけない資料</li></ul></article>
           </div>
           <div className="before-public"><b>公開の前に3つ確認</b><div><span>1</span>本物の個人情報がない</div><div><span>2</span>秘密の文字がない</div><div><span>3</span>講師と一緒に画面を見る</div></div>
-          <PageNumber value={19} />
+          <PageNumber value={25} />
         </section>
 
         <Chapter number="05" title="困ったときも、AIに聞こう" subtitle="止まった画面は失敗ではなく、次の質問に使う材料です。" tone="purple-tone" />
@@ -298,7 +418,7 @@ export default function Home() {
             <details><summary><span>Q4</span>公開まで終わりませんでした</summary><p>制作タスクに途中の記録が残ります。講座後に同じ場所から再開できます。</p></details>
           </div>
           <Point>分からないときに、分からないと言えることも立派な指示です。</Point>
-          <PageNumber value={21} />
+          <PageNumber value={27} />
         </section>
 
         <section className="sheet checklist">
@@ -312,7 +432,7 @@ export default function Home() {
             <div><span>□</span><b>作ってみたいもの</b><p>まだぼんやりでも大丈夫。</p></div>
           </div>
           <div className="account-status"><b>講座で一緒に登録します</b><span>ChatGPT または Claude</span><span>GitHub</span><span>Cloudflare</span></div>
-          <PageNumber value={22} />
+          <PageNumber value={28} />
         </section>
 
         <section className="sheet closing">
@@ -329,7 +449,7 @@ export default function Home() {
             <a href="https://docs.github.com/get-started/start-your-journey/creating-an-account-on-github" target="_blank" rel="noreferrer">GitHub</a>
             <a href="https://developers.cloudflare.com/fundamentals/setup/account/create-account/" target="_blank" rel="noreferrer">Cloudflare</a>
           </div>
-          <PageNumber value={23} />
+          <PageNumber value={29} />
         </section>
       </div>
     </main>
