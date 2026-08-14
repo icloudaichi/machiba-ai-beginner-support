@@ -8,9 +8,10 @@ const pages = [
   ["01", "道具をそろえる"],
   ["02", "仕組みを知る"],
   ["03", "話してつくる"],
-  ["04", "実践する"],
-  ["05", "当日の流れ"],
-  ["06", "困ったとき"],
+  ["04", "接続を準備"],
+  ["05", "実践する"],
+  ["06", "当日の流れ"],
+  ["07", "困ったとき"],
 ] as const;
 
 const catalogCases = [
@@ -68,6 +69,86 @@ const catalogCases = [
   },
 ] as const;
 
+const setupGuideSteps = [
+  {
+    number: "01",
+    label: "案内の進め方を固定する",
+    title: "AIを「一つずつ案内する係」にしよう",
+    lead: "先に進行ルールを渡すと、AIが何個も操作を並べず、あなたの画面を確認しながら待ってくれます。",
+    actions: ["AI相談室を開く", "下の詳細プロンプトをコピーして送る", "AIが最初の質問を一つだけしたか確認する"],
+    prompt: "あなたは、AIやパソコンに不慣れな人のセットアップ案内係です。必ず次のルールを守ってください。①最初にMacかWindowsか、今どの画面を開いているかを確認する。②一度の返答で案内する操作は一つだけにする。③操作する理由と、操作後に見えるはずの画面を短く説明する。④私が『できました』と答えるまで次へ進まない。⑤画面が違う場合は推測で進めず、秘密情報を隠したスクリーンショットを依頼する。⑥公式サイト以外へ案内しない。⑦パスワード、認証コード、秘密鍵、カード情報をチャットへ貼らせない。⑧インストール、ログイン、外部公開の前には、何が起きるか説明して確認する。⑨エラーは省略せず読み、原因と次の一手を初心者向けに説明する。⑩各作業の最後に『完了・未完了・次にすること』を示す。まず、私が使っているPCを一つだけ質問してください。",
+    checks: ["AIから質問が一つだけ届いた", "AIが返事を待っている"],
+    tip: "途中で案内がまとめて出たら「一つずつに戻してください」と伝えます。",
+    page: 24,
+  },
+  {
+    number: "02",
+    label: "すべての登録に使う",
+    title: "Googleアカウントを準備しよう",
+    lead: "Gmailを受け取れるGoogleアカウントを一つ用意します。すでに使えるものがあれば、新しく作る必要はありません。",
+    actions: ["講師と一緒にGoogleの公式アカウント作成ページを開く", "名前・生年月日・希望するGmailなどを自分の画面へ入力する", "電話やメールの確認が出たら自分で認証し、Gmailを開く"],
+    prompt: "Googleアカウントの準備を確認したいです。新しく作る必要があるかを一つずつ判断してください。入力する個人情報、パスワード、確認コードは私の画面だけに入力させ、チャットには書かせないでください。各操作後に、どんな画面が見えれば成功かを教え、私の『できました』を待ってください。",
+    checks: ["Googleへログインできる", "Gmailで確認メールを受け取れる"],
+    tip: "パスワードは講師もAIも預かりません。自分だけが分かる方法で管理します。",
+    page: 25,
+  },
+  {
+    number: "03",
+    label: "相談と制作に使う",
+    title: "ChatGPTデスクトップを準備しよう",
+    lead: "公式ページからアプリを入れ、Googleアカウントなどでログインします。ChatとCodexが見えるところまで進めます。",
+    actions: ["ChatGPT公式のダウンロードページを開く", "MacまたはWindowsに合うアプリをインストールする", "アプリを開いてログインし、ChatとCodexが選べるか確認する"],
+    prompt: "ChatGPTデスクトップの導入を、一操作ずつ案内してください。最初にMacかWindowsかと、すでにアプリが入っているかを確認してください。必ず公式ページだけを使い、ダウンロード、インストール、ログインを分けて案内し、各操作後に私の『できました』を待ってください。パスワードや確認コードはチャットに貼らせないでください。最後にChatとCodexが見えるか確認してください。",
+    checks: ["ChatGPTデスクトップが起動する", "ログイン後にCodexを選べる"],
+    tip: "似た名前のアプリを検索結果から選ばず、配布資料の公式リンクを使います。",
+    page: 26,
+  },
+  {
+    number: "04",
+    label: "作品を保存する場所",
+    title: "GitHubアカウントを作ろう",
+    lead: "GitHubの個人アカウントを作り、メール認証まで完了します。ユーザー名は作品のURLにも使われます。",
+    actions: ["GitHub公式のサインアップページを開く", "メールアドレス・パスワード・ユーザー名を自分で入力する", "Gmailへ届いた認証メールを開き、認証済みか確認する"],
+    prompt: "GitHubの個人アカウント作成を、一操作ずつ案内してください。最初に既存アカウントがないか確認し、公式のサインアップページだけを使ってください。メール、パスワード、確認コードは私の画面だけに入力させてください。ユーザー名を決めるときは、公開されても困らず、読みやすい候補を3つまで示してください。メール認証が終わるまで、私の『できました』を待ちながら進めてください。最後にユーザー名と認証済みであることだけを確認してください。",
+    checks: ["GitHubへログインできる", "メールアドレスが認証済みになっている"],
+    tip: "メール認証が終わっていないと、作品の保管場所を作れない場合があります。",
+    page: 27,
+  },
+  {
+    number: "05",
+    label: "公開する場所",
+    title: "Cloudflareアカウントを作ろう",
+    lead: "Cloudflareの無料アカウントを作り、メール認証とログインまで確認します。カード登録は行いません。",
+    actions: ["Cloudflare公式のアカウント作成ページを開く", "メールアドレスとパスワードを自分の画面へ入力する", "Gmailへ届いた確認を完了し、ダッシュボードを開く"],
+    prompt: "Cloudflareの無料アカウント作成を、一操作ずつ案内してください。最初に既存アカウントがないか確認し、必ず公式ページを使ってください。メール、パスワード、確認コードは私の画面だけに入力させてください。無料で進められる範囲だけを案内し、カード登録や有料プランが表示されたら進む前に説明してください。各操作後に私の『できました』を待ち、最後にダッシュボードへログインできることを確認してください。",
+    checks: ["Cloudflareへログインできる", "ダッシュボードが表示される"],
+    tip: "講座の標準課題では、無料で使える範囲から始めます。",
+    page: 28,
+  },
+  {
+    number: "06",
+    label: "PCとGitHubをつなぐ",
+    title: "GitHubへ接続しよう",
+    lead: "ブラウザで作ったGitHubアカウントと、このPCで働くCodexを一度つなぎます。接続後はAIが保存作業を進められます。",
+    actions: ["CodexにGitHub CLIがあるか確認してもらう", "なければ公式の方法で導入してもらう", "ブラウザ認証を開き、自分で許可して接続確認を行う"],
+    prompt: "このPCと私のGitHubアカウントを接続してください。最初にGitHub CLIの有無と、すでにログイン済みかを安全な確認コマンドで調べ、結果を初心者向けに説明してください。不足している場合だけ公式の方法で導入してください。認証はブラウザを使う方法を優先し、パスワード、確認コード、アクセストークンをチャットへ貼らせないでください。実行する操作は必ず一つずつ説明し、私の『できました』を待ってください。接続後はログイン状態とGitHubユーザー名を確認し、完了・未完了・次にすることを報告してください。",
+    checks: ["CodexがGitHubのユーザー名を確認できた", "秘密の文字をチャットへ貼らずに接続できた"],
+    tip: "ここでつなぐのは最初の一度です。接続後はCodexへ『GitHubに保存して』と頼めます。",
+    page: 29,
+  },
+  {
+    number: "07",
+    label: "PCとCloudflareをつなぐ",
+    title: "Cloudflareへ接続しよう",
+    lead: "CloudflareアカウントとCodexをブラウザ認証でつなぎます。接続後は公開やデータベース作成をAIへ頼めます。",
+    actions: ["CodexにWranglerがあるか確認してもらう", "プロジェクト内で使える状態か確認する", "ブラウザの認証画面で、自分のCloudflareアカウントを許可する"],
+    prompt: "このプロジェクトと私のCloudflareアカウントを接続してください。最初にWranglerが使えるかと、すでにログイン済みかを確認し、結果を初心者向けに説明してください。不足しているものだけ公式手順で準備してください。ブラウザ認証を使い、APIトークン、パスワード、確認コードをチャットへ表示させないでください。ログイン画面を開く前に何が起きるか説明し、私の『できました』を待ってください。接続後は安全な確認方法でアカウントが認識されているか調べ、完了・未完了・次にすることを報告してください。まだ公開やデータベース作成は行わないでください。",
+    checks: ["CodexがCloudflareへのログインを確認できた", "まだ公開せず、接続だけで止まっている"],
+    tip: "接続と公開を分けることで、何が起きたかを落ち着いて確認できます。",
+    page: 30,
+  },
+] as const;
+
 const practiceSteps = [
   {
     number: "01",
@@ -78,7 +159,7 @@ const practiceSteps = [
     prompt: "私はAIもアプリづくりも初めてです。難しい言葉は普段の日本語で説明し、一度に一つずつ質問してください。実際のファイル変更は別の制作タスクで行うよう案内してください。",
     checks: ["相談室の名前が見える", "分からないことを一つ質問できた"],
     tip: "この相談室は、今日だけでなく次のアプリづくりでも使います。",
-    page: 24,
+    page: 32,
   },
   {
     number: "02",
@@ -89,7 +170,7 @@ const practiceSteps = [
     prompt: "スターターZIPをダウンロードしました。私の画面を見ながら、展開して分かりやすい場所へ置くまで一つずつ案内してください。",
     checks: ["ZIPではなくフォルダが見える", "中に README.md がある"],
     tip: "フォルダ名は日本語でも構いません。今回は「はじめてのアプリ」でも大丈夫です。",
-    page: 25,
+    page: 33,
   },
   {
     number: "03",
@@ -100,7 +181,7 @@ const practiceSteps = [
     prompt: "今開いているフォルダが、今日使うスターターアプリか確認してください。まだ変更せず、見つかったファイルを初心者向けに説明してください。",
     checks: ["Codexの画面になっている", "README.md の内容を説明してもらえた"],
     tip: "表示名やボタンの位置は更新で変わることがあります。画面が違えば、そのままAI相談室へ見せます。",
-    page: 26,
+    page: 34,
   },
   {
     number: "04",
@@ -111,7 +192,7 @@ const practiceSteps = [
     prompt: "私はバイブコーディングが初めてです。MacかWindowsかを確認し、必要な作業を一度に一つだけ案内してください。操作の前に何をするか説明し、操作後は成功したか確認してください。パスワードや認証コードはチャットへ貼らせないでください。",
     checks: ["AIから最初の質問が一つ届いた", "自分のOSを答えられた"],
     tip: "長い文章を毎回書く必要はありません。最初に役割を渡した後は、普段の言葉で話します。",
-    page: 27,
+    page: 35,
   },
   {
     number: "05",
@@ -122,7 +203,7 @@ const practiceSteps = [
     prompt: "このPCでスターターアプリを動かす準備を確認してください。足りないものだけを公式の方法で案内し、インストールやログインの前には必ず説明してください。",
     checks: ["AIが確認結果を一覧にした", "不足分の導入後に成功確認ができた"],
     tip: "黒い画面が出ても、自分で文字を打つとは限りません。Codexが作業し、あなたは結果を確認します。",
-    page: 28,
+    page: 36,
   },
   {
     number: "06",
@@ -133,7 +214,7 @@ const practiceSteps = [
     prompt: "このスターターアプリをPCの中で起動してください。私が開くURLを教え、画面が表示されたら確認する場所を一つずつ案内してください。",
     checks: ["ブラウザにアプリが表示された", "サンプルの情報を追加・変更できた"],
     tip: "まだインターネットには公開されていません。まず自分のPCの中で安心して試します。",
-    page: 29,
+    page: 37,
   },
   {
     number: "07",
@@ -144,7 +225,7 @@ const practiceSteps = [
     prompt: "この画面を私向けに変えたいです。まずタイトルを『お客様連絡帳』にして、落ち着いた緑色の雰囲気にしてください。ほかに決めることがあれば、一度に一つ質問してください。",
     checks: ["頼んだ言葉や色が画面に反映された", "自分の言葉で追加希望を伝えられた"],
     tip: "タイトル・色・表示項目・用途のどれか一つが変われば、最初の成功です。",
-    page: 30,
+    page: 38,
   },
   {
     number: "08",
@@ -155,7 +236,7 @@ const practiceSteps = [
     prompt: "見てみると、緑色が少し暗く感じました。文字はこのままで、背景だけもう少し明るくしてください。変更後に、どこを変えたか教えてください。",
     checks: ["変更前との違いを説明できた", "追加の修正が画面へ反映された"],
     tip: "『なんとなく違う』『おすすめを見せて』も立派な相談です。",
-    page: 31,
+    page: 39,
   },
   {
     number: "09",
@@ -166,18 +247,29 @@ const practiceSteps = [
     prompt: "今のアプリをGitHubへ非公開で保存したいです。秘密情報が含まれていないか確認し、これから行うことを説明してから、一つずつ進めてください。",
     checks: ["GitHubで作品名が見える", "今日変えた内容の記録が見える"],
     tip: "GitHubは設計図と工事記録の保管庫です。コマンドを暗記しなくても、保存された内容を見られれば大丈夫です。",
-    page: 32,
+    page: 40,
   },
   {
     number: "10",
+    label: "情報を覚える場所をつくる",
+    title: "Cloudflare D1をつなごう",
+    lead: "公開の前に、アプリが情報を覚えておくD1データベースを作り、DBという名前でアプリへつなぎます。",
+    actions: ["Cloudflareへ接続済みか確認してもらう", "講座用のD1データベースを一つ作ってもらう", "バインディング名をDBにそろえ、練習用の表を準備する"],
+    prompt: "このアプリ用のCloudflare D1データベースを準備してください。最初にCloudflareへのログイン状態と、同じ名前のD1がすでにないか確認してください。新しく作る必要がある場合は、作成前に名前と影響を説明して私の確認を待ってください。D1バインディング名は必ずDBにしてください。作成後は設定ファイルへ必要な情報を反映し、秘密情報や不要なIDをチャットへ表示しないでください。練習用スキーマを適用する前にも内容を説明し、一操作ずつ進めてください。最後にD1への読み書きをテストし、完了・未完了・次にすることを報告してください。まだ公開はしないでください。",
+    checks: ["D1が一つ作成された", "DBという名前で接続テストが成功した"],
+    tip: "D1は情報の倉庫です。公開とは分けて、まず保存と読み出しだけを確かめます。",
+    page: 41,
+  },
+  {
+    number: "11",
     label: "自分専用アプリを公開する",
-    title: "Cloudflareへつないでみよう",
-    lead: "最後にCloudflareとD1を一度つなぎ、自分のPC以外からも開けるアプリにします。",
-    actions: ["Cloudflareへログインし、Codexとの接続を許可する", "D1という情報の倉庫を作り、アプリへつなぐ", "公開後のURLを開き、追加・更新・再読み込みを試す"],
-    prompt: "このアプリをCloudflareへ公開したいです。D1の準備を含め、秘密情報をチャットへ表示せず、一度に一つずつ案内してください。公開後は一覧・追加・更新・再読み込みを確認してください。",
-    checks: ["公開URLを自分のスマートフォンでも開けた", "再読み込みしても入力した情報が残った"],
-    tip: "時間内に公開できなくても、制作タスクから続きを再開できます。まずアプリを変えられたことが大切です。",
-    page: 33,
+    title: "Cloudflareへ公開しよう",
+    lead: "接続と保存の確認が終わったら、初めて外部公開を行います。公開URLを開き、動作を一つずつ確認します。",
+    actions: ["秘密情報や本物の個人情報がないか確認してもらう", "公開内容と公開範囲を説明してもらい、了承後に公開する", "PCとスマートフォンで開き、一覧・追加・更新・再読み込みを試す"],
+    prompt: "このアプリをCloudflareへ公開する準備ができているか確認してください。まず、秘密情報、本物の個人情報、ダミーではない認証情報がファイルに含まれていないか調べ、結果を初心者向けに説明してください。公開で何がインターネットから見えるようになるか、公開URLを知る人が何をできるかを説明し、私が『公開してください』と答えるまで実行しないでください。了承後に一度だけ公開し、公開URLを示してください。その後、一覧表示、追加、更新、再読み込み後の保存を一項目ずつ確認し、問題があれば公開作業を繰り返さず原因を説明してください。最後に公開URL、確認結果、残った課題をまとめてください。",
+    checks: ["公開URLをPCとスマートフォンで開けた", "再読み込みしても練習データが残った"],
+    tip: "時間内に公開できなくても、制作タスクから続きを再開できます。アプリを変えられた時点で最初の成功です。",
+    page: 42,
   },
 ] as const;
 
@@ -264,6 +356,28 @@ function PracticePage({ item }: { item: (typeof practiceSteps)[number] }) {
       <div className="practice-footer">
         <div className="practice-checks"><b>できたらチェック</b>{item.checks.map(check => <p key={check}>□ {check}</p>)}</div>
         <div className="practice-tip"><b>覚えておくこと</b><p>{item.tip}</p></div>
+      </div>
+      <PageNumber value={item.page} />
+    </section>
+  );
+}
+
+function SetupGuidePage({ item }: { item: (typeof setupGuideSteps)[number] }) {
+  return (
+    <section className="sheet practice-page setup-guide-page">
+      <div className="practice-heading"><span>SETUP {item.number}</span><p>{item.label}</p></div>
+      <h2>{item.title}</h2>
+      <p className="lead small">{item.lead}</p>
+      <div className="practice-actions">
+        {item.actions.map((action, index) => <div key={action}><span>{index + 1}</span><p>{action}</p></div>)}
+      </div>
+      <div className="say-this setup-prompt">
+        <p className="say-label">案内役AIへ渡す詳細プロンプト</p>
+        <blockquote>{item.prompt}</blockquote>
+      </div>
+      <div className="practice-footer">
+        <div className="practice-checks"><b>このページの完了条件</b>{item.checks.map(check => <p key={check}>□ {check}</p>)}</div>
+        <div className="practice-tip"><b>止まったとき</b><p>{item.tip}</p></div>
       </div>
       <PageNumber value={item.page} />
     </section>
@@ -513,11 +627,15 @@ export default function Home() {
           <PageNumber value={22} />
         </section>
 
-        <Chapter number="04" title="実際にバイブコーディングを始めよう！" subtitle="ここからは参加者用の実践ガイドです。今いるページを見ながら、一つずつ進めます。" tone="practice-tone" />
+        <Chapter number="04" title="アカウントと接続を、一つずつ準備しよう" subtitle="作る前の準備もAIに任せます。一操作ずつ進み、画面を確認してから次へ進みます。" tone="setup-tone" />
+
+        {setupGuideSteps.map(item => <SetupGuidePage key={item.number} item={item} />)}
+
+        <Chapter number="05" title="実際にバイブコーディングを始めよう！" subtitle="ここからは参加者用の実践ガイドです。今いるページを見ながら、一つずつ進めます。" tone="practice-tone" />
 
         {practiceSteps.map(item => <PracticePage key={item.number} item={item} />)}
 
-        <Chapter number="05" title="当日の流れ" subtitle="2026年8月23日 13:00〜18:00｜全員の目標は「相談して、一つ変える」まで。" tone="orange-tone" />
+        <Chapter number="06" title="当日の流れ" subtitle="2026年8月23日 13:00〜18:00｜全員の目標は「相談して、一つ変える」まで。" tone="orange-tone" />
 
         <section className="sheet schedule">
           <p className="eyebrow orange">5時間のカリキュラム</p>
@@ -532,7 +650,7 @@ export default function Home() {
             <div><time>17:25</time><span /><p><b>公開・振り返り</b>できる人は公開URLを確認</p></div>
           </div>
           <div className="must-goal"><b>全員の成功</b><span>相談室を作る</span><span>アカウントを準備</span><span>アプリを一つ変える</span></div>
-          <PageNumber value={35} />
+          <PageNumber value={44} />
         </section>
 
         <section className="sheet safety">
@@ -543,10 +661,10 @@ export default function Home() {
             <article className="unsafe"><h3>× AIへ貼らないもの</h3><ul><li>パスワード・確認コード</li><li>カード情報・秘密鍵</li><li>本物のお客様情報</li><li>公開してはいけない資料</li></ul></article>
           </div>
           <div className="before-public"><b>公開の前に3つ確認</b><div><span>1</span>本物の個人情報がない</div><div><span>2</span>秘密の文字がない</div><div><span>3</span>講師と一緒に画面を見る</div></div>
-          <PageNumber value={36} />
+          <PageNumber value={45} />
         </section>
 
-        <Chapter number="06" title="困ったときも、AIに聞こう" subtitle="止まった画面は失敗ではなく、次の質問に使う材料です。" tone="purple-tone" />
+        <Chapter number="07" title="困ったときも、AIに聞こう" subtitle="止まった画面は失敗ではなく、次の質問に使う材料です。" tone="purple-tone" />
 
         <section className="sheet qa">
           <p className="eyebrow purple">よくある質問</p>
@@ -558,7 +676,7 @@ export default function Home() {
             <details><summary><span>Q4</span>公開まで終わりませんでした</summary><p>制作タスクに途中の記録が残ります。講座後に同じ場所から再開できます。</p></details>
           </div>
           <Point>分からないときに、分からないと言えることも立派な指示です。</Point>
-          <PageNumber value={38} />
+          <PageNumber value={47} />
         </section>
 
         <section className="sheet checklist">
@@ -572,7 +690,7 @@ export default function Home() {
             <div><span>□</span><b>作ってみたいもの</b><p>まだぼんやりでも大丈夫。</p></div>
           </div>
           <div className="account-status"><b>講座で一緒に登録します</b><span>ChatGPT または Claude</span><span>GitHub</span><span>Cloudflare</span></div>
-          <PageNumber value={39} />
+          <PageNumber value={48} />
         </section>
 
         <section className="sheet closing">
@@ -589,7 +707,7 @@ export default function Home() {
             <a href="https://docs.github.com/get-started/start-your-journey/creating-an-account-on-github" target="_blank" rel="noreferrer">GitHub</a>
             <a href="https://developers.cloudflare.com/fundamentals/setup/account/create-account/" target="_blank" rel="noreferrer">Cloudflare</a>
           </div>
-          <PageNumber value={40} />
+          <PageNumber value={49} />
         </section>
       </div>
     </main>

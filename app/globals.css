@@ -115,6 +115,8 @@ a { color: inherit; }
 .chapter.orange-tone { background: var(--orange); }
 .chapter.purple-tone { background: var(--purple); }
 .chapter.practice-tone { background: #245d52; }
+.chapter.setup-tone { color: var(--ink); background: #f1cc62; }
+.chapter.setup-tone .chapter-orbit { border-color: rgba(22,76,64,.08); }
 .chapter.catalog-tone { background: #213f38; }
 .catalog-tone .chapter-number { margin: 28px 0 46px; font-size: 52px; letter-spacing: .08em; opacity: .35; }
 .catalog-tone h2 { margin-top: 0; }
@@ -196,6 +198,19 @@ a { color: inherit; }
 .practice-checks b { color: #947115; }
 .practice-tip { background: #edf0f5; }
 .practice-tip b { color: #4c6680; }
+.setup-guide-page { --practice: #9a6c13; }
+.setup-guide-page h2 { margin-bottom: 8px; font-size: 31px; }
+.setup-guide-page .lead.small { font-size: 12px; line-height: 1.65; }
+.setup-guide-page .practice-actions { gap: 5px; margin-top: 14px; }
+.setup-guide-page .practice-actions > div { min-height: 40px; padding: 7px 12px; }
+.setup-guide-page .practice-actions p { font-size: 9px; }
+.setup-guide-page .say-this { margin-top: 12px; padding: 13px 16px; }
+.setup-guide-page .say-label { margin-bottom: 6px !important; font-size: 8px; }
+.setup-guide-page .say-this blockquote { font-size: 8.1px; line-height: 1.55; }
+.setup-guide-page .practice-footer { margin-top: 8px; }
+.setup-guide-page .practice-footer > div { min-height: 78px; padding: 11px 13px; }
+.setup-guide-page .practice-footer b { margin-bottom: 5px; font-size: 8px; }
+.setup-guide-page .practice-footer p { margin: 2px 0; font-size: 7.8px; line-height: 1.45; }
 
 /* Setup pages */
 .step-label { display: inline-block; margin-bottom: 12px; padding: 5px 12px; border-radius: 999px; color: white; background: var(--green); font-size: 10px; font-weight: 900; letter-spacing: .15em; }
