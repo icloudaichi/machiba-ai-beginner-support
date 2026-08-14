@@ -114,6 +114,7 @@ a { color: inherit; }
 .chapter.green-tone { background: var(--green); }
 .chapter.orange-tone { background: var(--orange); }
 .chapter.purple-tone { background: var(--purple); }
+.chapter.practice-tone { background: #245d52; }
 .chapter.catalog-tone { background: #213f38; }
 .catalog-tone .chapter-number { margin: 28px 0 46px; font-size: 52px; letter-spacing: .08em; opacity: .35; }
 .catalog-tone h2 { margin-top: 0; }
@@ -171,6 +172,30 @@ a { color: inherit; }
 .connected-state p { margin: 0; font-size: 10px; line-height: 1.7; }
 .connected-kicker { color: #cce0d7; font-size: 9px !important; font-weight: 900; letter-spacing: .13em; }
 .reconnect-note { margin-top: 15px; padding: 12px 15px; color: #6a736f; background: #f2f3ef; font-size: 9px; text-align: center; }
+
+/* Hands-on guide */
+.practice-page { --practice: #245d52; }
+.practice-heading { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+.practice-heading span { display: inline-block; padding: 6px 12px; border-radius: 999px; color: white; background: var(--practice); font-size: 9px; font-weight: 900; letter-spacing: .13em; }
+.practice-heading p { margin: 0; color: var(--practice); font-size: 11px; font-weight: 900; letter-spacing: .06em; }
+.practice-page h2 { margin-bottom: 12px; font-size: 36px; }
+.practice-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 22px; }
+.practice-actions > div { display: grid; grid-template-columns: 32px 1fr; gap: 12px; align-items: center; min-height: 50px; padding: 10px 15px; border-left: 4px solid var(--practice); background: #edf4f1; }
+.practice-actions span { display: grid; place-items: center; width: 27px; height: 27px; border-radius: 50%; color: white; background: var(--practice); font-size: 9px; font-weight: 900; }
+.practice-actions p { margin: 0; font-size: 11px; font-weight: 700; line-height: 1.55; }
+.say-this { margin-top: 20px; padding: 18px 20px 17px; border-radius: 9px; color: white; background: #203d36; }
+.say-label { margin: 0 0 10px !important; color: #b9d8cd; font-size: 9px; font-weight: 900; letter-spacing: .12em; }
+.say-this blockquote { margin: 0; font-size: 11px; font-weight: 700; line-height: 1.75; }
+.say-this blockquote::before { color: var(--yellow); content: "“ "; font-size: 19px; line-height: 0; }
+.say-this blockquote::after { color: var(--yellow); content: " ”"; font-size: 19px; line-height: 0; }
+.practice-footer { display: grid; grid-template-columns: .9fr 1.1fr; gap: 10px; margin-top: 14px; }
+.practice-footer > div { min-height: 105px; padding: 15px 17px; border-radius: 7px; }
+.practice-footer b { display: block; margin-bottom: 8px; font-size: 10px; }
+.practice-footer p { margin: 4px 0; font-size: 9px; line-height: 1.55; }
+.practice-checks { background: #fff4cf; }
+.practice-checks b { color: #947115; }
+.practice-tip { background: #edf0f5; }
+.practice-tip b { color: #4c6680; }
 
 /* Setup pages */
 .step-label { display: inline-block; margin-bottom: 12px; padding: 5px 12px; border-radius: 999px; color: white; background: var(--green); font-size: 10px; font-weight: 900; letter-spacing: .15em; }

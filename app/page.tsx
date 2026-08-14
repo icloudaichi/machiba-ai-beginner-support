@@ -8,8 +8,9 @@ const pages = [
   ["01", "道具をそろえる"],
   ["02", "仕組みを知る"],
   ["03", "話してつくる"],
-  ["04", "当日の流れ"],
-  ["05", "困ったとき"],
+  ["04", "実践する"],
+  ["05", "当日の流れ"],
+  ["06", "困ったとき"],
 ] as const;
 
 const catalogCases = [
@@ -64,6 +65,119 @@ const catalogCases = [
     note: "Googleアカウントでアプリに許可する範囲を選び、AIと一度接続します。重要な判断は本人が行います。",
     tone: "secretary",
     page: 8,
+  },
+] as const;
+
+const practiceSteps = [
+  {
+    number: "01",
+    label: "質問できる場所をつくる",
+    title: "まず、AI相談室を開こう",
+    lead: "制作中に知らない言葉や画面が出ても、いつでも質問できる場所を最初に用意します。",
+    actions: ["ChatGPTで新しいチャットを作る", "名前を「AI相談室｜はじめてのアプリづくり」にする", "分かりやすい場所へピン留めする"],
+    prompt: "私はAIもアプリづくりも初めてです。難しい言葉は普段の日本語で説明し、一度に一つずつ質問してください。実際のファイル変更は別の制作タスクで行うよう案内してください。",
+    checks: ["相談室の名前が見える", "分からないことを一つ質問できた"],
+    tip: "この相談室は、今日だけでなく次のアプリづくりでも使います。",
+    page: 24,
+  },
+  {
+    number: "02",
+    label: "作品を置く場所をつくる",
+    title: "スターターフォルダを準備しよう",
+    lead: "最初から全部を作らず、講師が用意した見本をコピーして、自分の作品として育てます。",
+    actions: ["Google DriveからスターターZIPをダウンロードする", "ZIPを展開して、普通のフォルダにする", "「書類」など、後から見つけやすい場所へ移す"],
+    prompt: "スターターZIPをダウンロードしました。私の画面を見ながら、展開して分かりやすい場所へ置くまで一つずつ案内してください。",
+    checks: ["ZIPではなくフォルダが見える", "中に README.md がある"],
+    tip: "フォルダ名は日本語でも構いません。今回は「はじめてのアプリ」でも大丈夫です。",
+    page: 25,
+  },
+  {
+    number: "03",
+    label: "Codexに作業場所を渡す",
+    title: "制作するフォルダを開こう",
+    lead: "ChatGPTデスクトップでCodexを選び、さきほど用意したフォルダを作業場所として開きます。",
+    actions: ["ChatGPTデスクトップを開いてログインする", "左上のメニューから「Codex」を選ぶ", "フォルダを開く操作で、スターターフォルダを選ぶ"],
+    prompt: "今開いているフォルダが、今日使うスターターアプリか確認してください。まだ変更せず、見つかったファイルを初心者向けに説明してください。",
+    checks: ["Codexの画面になっている", "README.md の内容を説明してもらえた"],
+    tip: "表示名やボタンの位置は更新で変わることがあります。画面が違えば、そのままAI相談室へ見せます。",
+    page: 26,
+  },
+  {
+    number: "04",
+    label: "最初の依頼を渡す",
+    title: "制作タスクを始めよう",
+    lead: "このアプリでは、AIに『初心者を案内する担当』としての進め方を最初に渡します。",
+    actions: ["Codexで新しいタスクを作る", "名前を「01 はじめてのアプリ制作」にする", "下の文章を貼り、送信する"],
+    prompt: "私はバイブコーディングが初めてです。MacかWindowsかを確認し、必要な作業を一度に一つだけ案内してください。操作の前に何をするか説明し、操作後は成功したか確認してください。パスワードや認証コードはチャットへ貼らせないでください。",
+    checks: ["AIから最初の質問が一つ届いた", "自分のOSを答えられた"],
+    tip: "長い文章を毎回書く必要はありません。最初に役割を渡した後は、普段の言葉で話します。",
+    page: 27,
+  },
+  {
+    number: "05",
+    label: "PCの準備を確認する",
+    title: "必要な道具だけをそろえよう",
+    lead: "Codexが今のPCを確認し、足りない道具だけを見つけます。名前を覚える必要はありません。",
+    actions: ["Git・Node.js・GitHub CLI・Wranglerがあるか調べてもらう", "不足しているものの役割を説明してもらう", "公式の方法で一つずつ導入し、毎回確認する"],
+    prompt: "このPCでスターターアプリを動かす準備を確認してください。足りないものだけを公式の方法で案内し、インストールやログインの前には必ず説明してください。",
+    checks: ["AIが確認結果を一覧にした", "不足分の導入後に成功確認ができた"],
+    tip: "黒い画面が出ても、自分で文字を打つとは限りません。Codexが作業し、あなたは結果を確認します。",
+    page: 28,
+  },
+  {
+    number: "06",
+    label: "まず動くものを見る",
+    title: "アプリを動かして開こう",
+    lead: "変更する前に、最初の見本が動くことを確認します。画面が出れば、ここから会話で育てられます。",
+    actions: ["Codexにアプリを起動してもらう", "表示されたローカルURLをブラウザで開く", "一覧・追加・更新を一度ずつ試す"],
+    prompt: "このスターターアプリをPCの中で起動してください。私が開くURLを教え、画面が表示されたら確認する場所を一つずつ案内してください。",
+    checks: ["ブラウザにアプリが表示された", "サンプルの情報を追加・変更できた"],
+    tip: "まだインターネットには公開されていません。まず自分のPCの中で安心して試します。",
+    page: 29,
+  },
+  {
+    number: "07",
+    label: "音声で一つ頼む",
+    title: "自分らしく、一つ変えてみよう",
+    lead: "マイクを押し、画面を見ながら感じたことをそのまま話します。言い直しも話の脱線も大丈夫です。",
+    actions: ["変えたいものを一つ選ぶ", "誰が使うか、どうしたいかを音声で話す", "AIの確認質問へ答え、変更してもらう"],
+    prompt: "この画面を私向けに変えたいです。まずタイトルを『お客様連絡帳』にして、落ち着いた緑色の雰囲気にしてください。ほかに決めることがあれば、一度に一つ質問してください。",
+    checks: ["頼んだ言葉や色が画面に反映された", "自分の言葉で追加希望を伝えられた"],
+    tip: "タイトル・色・表示項目・用途のどれか一つが変われば、最初の成功です。",
+    page: 30,
+  },
+  {
+    number: "08",
+    label: "見てから追加相談する",
+    title: "できた画面へ、感想を返そう",
+    lead: "一回で決めず、見て感じたことをAIへ返します。ここがバイブコーディングの中心です。",
+    actions: ["変更後の画面を自分で触る", "良かったところと違うところを話す", "一つだけ直してもらい、もう一度確認する"],
+    prompt: "見てみると、緑色が少し暗く感じました。文字はこのままで、背景だけもう少し明るくしてください。変更後に、どこを変えたか教えてください。",
+    checks: ["変更前との違いを説明できた", "追加の修正が画面へ反映された"],
+    tip: "『なんとなく違う』『おすすめを見せて』も立派な相談です。",
+    page: 31,
+  },
+  {
+    number: "09",
+    label: "作品と変更を残す",
+    title: "GitHubへ記録してもらおう",
+    lead: "今できたファイルと変更の記録をGitHubへ置きます。Gitの操作はAIに任せ、あなたは内容を確認します。",
+    actions: ["GitHubへログインできているか確認する", "自分用の非公開リポジトリを作ってもらう", "保存する内容を説明してもらい、記録を依頼する"],
+    prompt: "今のアプリをGitHubへ非公開で保存したいです。秘密情報が含まれていないか確認し、これから行うことを説明してから、一つずつ進めてください。",
+    checks: ["GitHubで作品名が見える", "今日変えた内容の記録が見える"],
+    tip: "GitHubは設計図と工事記録の保管庫です。コマンドを暗記しなくても、保存された内容を見られれば大丈夫です。",
+    page: 32,
+  },
+  {
+    number: "10",
+    label: "自分専用アプリを公開する",
+    title: "Cloudflareへつないでみよう",
+    lead: "最後にCloudflareとD1を一度つなぎ、自分のPC以外からも開けるアプリにします。",
+    actions: ["Cloudflareへログインし、Codexとの接続を許可する", "D1という情報の倉庫を作り、アプリへつなぐ", "公開後のURLを開き、追加・更新・再読み込みを試す"],
+    prompt: "このアプリをCloudflareへ公開したいです。D1の準備を含め、秘密情報をチャットへ表示せず、一度に一つずつ案内してください。公開後は一覧・追加・更新・再読み込みを確認してください。",
+    checks: ["公開URLを自分のスマートフォンでも開けた", "再読み込みしても入力した情報が残った"],
+    tip: "時間内に公開できなくても、制作タスクから続きを再開できます。まずアプリを変えられたことが大切です。",
+    page: 33,
   },
 ] as const;
 
@@ -129,6 +243,28 @@ function CatalogPage({ item }: { item: (typeof catalogCases)[number] }) {
         </div>
       </div>
       <div className="catalog-note"><b>最初につなぐ準備</b><p>{item.note}</p></div>
+      <PageNumber value={item.page} />
+    </section>
+  );
+}
+
+function PracticePage({ item }: { item: (typeof practiceSteps)[number] }) {
+  return (
+    <section className="sheet practice-page">
+      <div className="practice-heading"><span>PRACTICE {item.number}</span><p>{item.label}</p></div>
+      <h2>{item.title}</h2>
+      <p className="lead small">{item.lead}</p>
+      <div className="practice-actions">
+        {item.actions.map((action, index) => <div key={action}><span>{index + 1}</span><p>{action}</p></div>)}
+      </div>
+      <div className="say-this">
+        <p className="say-label">AIへそのまま言ってみよう</p>
+        <blockquote>{item.prompt}</blockquote>
+      </div>
+      <div className="practice-footer">
+        <div className="practice-checks"><b>できたらチェック</b>{item.checks.map(check => <p key={check}>□ {check}</p>)}</div>
+        <div className="practice-tip"><b>覚えておくこと</b><p>{item.tip}</p></div>
+      </div>
       <PageNumber value={item.page} />
     </section>
   );
@@ -377,7 +513,11 @@ export default function Home() {
           <PageNumber value={22} />
         </section>
 
-        <Chapter number="04" title="当日の流れ" subtitle="2026年8月23日 13:00〜18:00｜全員の目標は「相談して、一つ変える」まで。" tone="orange-tone" />
+        <Chapter number="04" title="実際にバイブコーディングを始めよう！" subtitle="ここからは参加者用の実践ガイドです。今いるページを見ながら、一つずつ進めます。" tone="practice-tone" />
+
+        {practiceSteps.map(item => <PracticePage key={item.number} item={item} />)}
+
+        <Chapter number="05" title="当日の流れ" subtitle="2026年8月23日 13:00〜18:00｜全員の目標は「相談して、一つ変える」まで。" tone="orange-tone" />
 
         <section className="sheet schedule">
           <p className="eyebrow orange">5時間のカリキュラム</p>
@@ -392,7 +532,7 @@ export default function Home() {
             <div><time>17:25</time><span /><p><b>公開・振り返り</b>できる人は公開URLを確認</p></div>
           </div>
           <div className="must-goal"><b>全員の成功</b><span>相談室を作る</span><span>アカウントを準備</span><span>アプリを一つ変える</span></div>
-          <PageNumber value={24} />
+          <PageNumber value={35} />
         </section>
 
         <section className="sheet safety">
@@ -403,10 +543,10 @@ export default function Home() {
             <article className="unsafe"><h3>× AIへ貼らないもの</h3><ul><li>パスワード・確認コード</li><li>カード情報・秘密鍵</li><li>本物のお客様情報</li><li>公開してはいけない資料</li></ul></article>
           </div>
           <div className="before-public"><b>公開の前に3つ確認</b><div><span>1</span>本物の個人情報がない</div><div><span>2</span>秘密の文字がない</div><div><span>3</span>講師と一緒に画面を見る</div></div>
-          <PageNumber value={25} />
+          <PageNumber value={36} />
         </section>
 
-        <Chapter number="05" title="困ったときも、AIに聞こう" subtitle="止まった画面は失敗ではなく、次の質問に使う材料です。" tone="purple-tone" />
+        <Chapter number="06" title="困ったときも、AIに聞こう" subtitle="止まった画面は失敗ではなく、次の質問に使う材料です。" tone="purple-tone" />
 
         <section className="sheet qa">
           <p className="eyebrow purple">よくある質問</p>
@@ -418,7 +558,7 @@ export default function Home() {
             <details><summary><span>Q4</span>公開まで終わりませんでした</summary><p>制作タスクに途中の記録が残ります。講座後に同じ場所から再開できます。</p></details>
           </div>
           <Point>分からないときに、分からないと言えることも立派な指示です。</Point>
-          <PageNumber value={27} />
+          <PageNumber value={38} />
         </section>
 
         <section className="sheet checklist">
@@ -432,7 +572,7 @@ export default function Home() {
             <div><span>□</span><b>作ってみたいもの</b><p>まだぼんやりでも大丈夫。</p></div>
           </div>
           <div className="account-status"><b>講座で一緒に登録します</b><span>ChatGPT または Claude</span><span>GitHub</span><span>Cloudflare</span></div>
-          <PageNumber value={28} />
+          <PageNumber value={39} />
         </section>
 
         <section className="sheet closing">
@@ -449,7 +589,7 @@ export default function Home() {
             <a href="https://docs.github.com/get-started/start-your-journey/creating-an-account-on-github" target="_blank" rel="noreferrer">GitHub</a>
             <a href="https://developers.cloudflare.com/fundamentals/setup/account/create-account/" target="_blank" rel="noreferrer">Cloudflare</a>
           </div>
-          <PageNumber value={29} />
+          <PageNumber value={40} />
         </section>
       </div>
     </main>
