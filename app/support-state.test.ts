@@ -17,6 +17,9 @@ test("setup gate requires a ready project folder and both connections", () => {
   assert.equal(deriveGate("ready", "connected", "connected"), "ready");
   assert.equal(deriveGate("ready", "account-blocked", "connected"), "local-fallback");
   assert.equal(deriveGate("ready", "connected", "connection-blocked"), "local-fallback");
+  assert.equal(deriveGate("ready", "connected", "connected", "not-started"), "pending");
+  assert.equal(deriveGate("ready", "connected", "connected", "local-queued"), "local-fallback");
+  assert.equal(deriveGate("ready", "connected", "connected", "synced"), "ready");
 });
 
 test("retry resumes the exact account or connection stage", () => {
@@ -26,11 +29,18 @@ test("retry resumes the exact account or connection stage", () => {
   assert.equal(nextConnectionStep(progress({
     projectStatus: "ready",
     githubStatus: "connected",
+    githubLogStatus: "not-started",
+  })), "github-connect");
+  assert.equal(nextConnectionStep(progress({
+    projectStatus: "ready",
+    githubStatus: "connected",
+    githubLogStatus: "synced",
     cloudflareStatus: "account-blocked",
   })), "cloudflare-account");
   assert.equal(nextConnectionStep(progress({
     projectStatus: "ready",
     githubStatus: "connected",
+    githubLogStatus: "synced",
     cloudflareStatus: "connection-blocked",
   })), "cloudflare-connect");
 });
@@ -55,17 +65,19 @@ test("legacy blocked state migrates according to the completed stage", () => {
 
 test("sanitization keeps only enumerated progress and drops paths or account data", () => {
   const sanitized = sanitizeProgress({
-    version: 2,
+    version: 3,
     os: "mac",
     ai: "chatgpt",
     projectStatus: "ready",
     githubStatus: "connected",
     cloudflareStatus: "connected",
+    githubLogStatus: "synced",
     currentStep: "support-mode",
     completedSteps: ["device", "device", "project-folder", "not-a-step"],
     projectPath: "/Users/example/secret-project",
     email: "someone@example.com",
     accountId: "secret-account",
+    githubIssueNumber: 42,
   });
 
   assert.deepEqual(sanitized.completedSteps, ["device", "project-folder"]);
@@ -73,4 +85,30 @@ test("sanitization keeps only enumerated progress and drops paths or account dat
   assert.equal("projectPath" in sanitized, false);
   assert.equal("email" in sanitized, false);
   assert.equal("accountId" in sanitized, false);
+  assert.equal(sanitized.githubIssueNumber, 42);
+});
+
+test("invalid issue numbers and unknown log states are discarded", () => {
+  const sanitized = sanitizeProgress({
+    githubLogStatus: "uploaded",
+    githubIssueNumber: -7,
+  });
+
+  assert.equal(sanitized.githubLogStatus, "not-started");
+  assert.equal(sanitized.githubIssueNumber, null);
+});
+
+test("version 2 progress returns to GitHub logging before later steps", () => {
+  const migrated = sanitizeProgress({
+    version: 2,
+    projectStatus: "ready",
+    githubStatus: "connected",
+    cloudflareStatus: "connected",
+    currentStep: "idea",
+    completedSteps: ["device", "project-folder", "github-account", "github-connect"],
+  });
+
+  assert.equal(migrated.currentStep, "github-connect");
+  assert.equal(migrated.githubLogStatus, "not-started");
+  assert.equal(migrated.setupGate, "pending");
 });

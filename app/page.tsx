@@ -2,6 +2,11 @@
 
 import { useState } from "react";
 import SupportGuide from "./support-guide";
+import { SUPPORT_REPOSITORY_URL, SUPPORT_SITE_URL } from "./support-context";
+
+function deckPrompt(stepId: string, target: "AI相談室" | "制作スレッド", instruction: string) {
+  return `街場のAI屋さん公式ガイド：${SUPPORT_SITE_URL}\n教材・AI手順の正本：${SUPPORT_REPOSITORY_URL}\nSTEP ID：${stepId}\n貼り付け先：${target}\nURLを読めない場合は読んだふりをせず伝えてください。\n\n${instruction}`;
+}
 
 const pages = [
   ["00", "はじめに"],
@@ -77,7 +82,7 @@ const setupGuideSteps = [
     title: "AIを「一つずつ案内する係」にしよう",
     lead: "先に進行ルールを渡すと、AIが何個も操作を並べず、あなたの画面を確認しながら待ってくれます。",
     actions: ["AI相談室を開く", "下の詳細プロンプトをコピーして送る", "AIが最初の質問を一つだけしたか確認する"],
-    prompt: "あなたは、AIやパソコンに不慣れな人のセットアップ案内係です。必ず次のルールを守ってください。①最初にMacかWindowsか、今どの画面を開いているかを確認する。②一度の返答で案内する操作は一つだけにする。③操作する理由と、操作後に見えるはずの画面を短く説明する。④私が『できました』と答えるまで次へ進まない。⑤画面が違う場合は推測で進めず、秘密情報を隠したスクリーンショットを依頼する。⑥公式サイト以外へ案内しない。⑦パスワード、認証コード、秘密鍵、カード情報をチャットへ貼らせない。⑧インストール、ログイン、外部公開の前には、何が起きるか説明して確認する。⑨エラーは省略せず読み、原因と次の一手を初心者向けに説明する。⑩各作業の最後に『完了・未完了・次にすること』を示す。まず、私が使っているPCを一つだけ質問してください。",
+    prompt: deckPrompt("setup-guidance", "AI相談室", "あなたは、AIやパソコンに不慣れな人のセットアップ案内係です。対象プロジェクトを開いたCodexまたはClaude Codeのスレッドを標準にします。一度の返答では一問または一操作だけ示し、理由、成功時に見えるもの、返してほしい結果を伝えて待ってください。パスワード、認証コード、秘密鍵、カード情報、コマンドの生出力は要求・保存しないでください。scripts/support-session.mjs がある場合、開始後の成功・失敗・次の一手だけをGitHub Issueへ構造化して記録し、再読み取りしてください。最初は、私が使っているPCを一つだけ質問してください。"),
     checks: ["AIから質問が一つだけ届いた", "AIが返事を待っている"],
     tip: "途中で案内がまとめて出たら「一つずつに戻してください」と伝えます。",
     page: 24,
@@ -130,11 +135,11 @@ const setupGuideSteps = [
     number: "06",
     label: "PCとGitHubをつなぐ",
     title: "GitHubへ接続しよう",
-    lead: "ブラウザで作ったGitHubアカウントと、このPCで働くCodexを一度つなぎます。接続後はAIが保存作業を進められます。",
-    actions: ["CodexにGitHub CLIがあるか確認してもらう", "なければ公式の方法で導入してもらう", "ブラウザ認証を開き、自分で許可して接続確認を行う"],
-    prompt: "このPCとGitHubの接続状況を確認してください。最初にGitHub CLIの有無を確認し、未導入なら勝手に入れず必要な作業を一つ説明してください。CLIがある場合は、OSに合う方法で gh auth status の標準出力と標準エラーを抑制し、終了ステータスだけを確認してください。コマンド出力、ユーザー名、メール、組織名はチャットへ表示せず、『接続済み／未接続』だけを報告してください。認証を始める前に説明して私の返事を待ち、パスワード、確認コード、アクセストークンは貼らせないでください。",
-    checks: ["Codexが出力を表示せず接続状態だけを確認できた", "秘密の文字をチャットへ貼らずに接続できた"],
-    tip: "ここでつなぐのは最初の一度です。接続後はCodexへ『GitHubに保存して』と頼めます。",
+    lead: "ブラウザで作ったGitHubアカウントと、このPCで働くCodexを一度つなぎます。接続後は、作品の保存とAI相談の作業記録をAIが進められます。",
+    actions: ["CodexにGitHub CLIがあるか確認してもらう", "ブラウザ認証を開き、自分で許可して接続確認を行う", "非公開の作品リポジトリでセッションIssueを開始する"],
+    prompt: deckPrompt("github-connect/session-log", "制作スレッド", "このPCとGitHubの接続状況を、標準出力と標準エラーを表示せず終了ステータスだけで確認してください。接続後、scripts/support-session.mjs があれば、この相談の成功・失敗・現在地を残すセッションIssueを開始してください。この依頼は、構造化したIssueの作成・追記・再読み取りと、私が終了を依頼した後のクローズだけを許可し、mergeや公開の許可ではありません。1つのアプリ用リポジトリでは同時に1つのサポートセッションだけを進めます。参加者自身の非公開アプリ用リポジトリを標準とし、公開リポジトリでは明示許可なしに記録しないでください。成功時はIssue番号だけを伝えてください。"),
+    checks: ["Codexが出力を表示せず接続状態だけを確認できた", "セッションIssueまたはPC内の同期待ち記録を開始できた"],
+    tip: "以後は『できました』『エラーが出ました』もAIが作業日誌へ短く残します。会話全文は保存しません。",
     page: 29,
   },
   {
@@ -154,12 +159,12 @@ const practiceSteps = [
   {
     number: "01",
     label: "質問できる場所をつくる",
-    title: "まず、AI相談室を開こう",
-    lead: "制作中に知らない言葉や画面が出ても、いつでも質問できる場所を最初に用意します。",
-    actions: ["ChatGPTで新しいチャットを作る", "名前を「AI相談室｜はじめてのアプリづくり」にする", "分かりやすい場所へピン留めする"],
-    prompt: "私はAIもアプリづくりも初めてです。難しい言葉は普段の日本語で説明し、一度に一つずつ質問してください。実際のファイル変更は別の制作タスクで行うよう案内してください。",
-    checks: ["相談室の名前が見える", "分からないことを一つ質問できた"],
-    tip: "この相談室は、今日だけでなく次のアプリづくりでも使います。",
+    title: "プロジェクトのAI相談室を開こう",
+    lead: "対象プロジェクトを開いたCodexまたはClaude Codeに、質問と作業記録を担当するスレッドを作ります。普通のChatGPTやClaudeは説明だけに使えますが、PC確認とGitHub自動記録はできません。",
+    actions: ["作品のプロジェクトフォルダをCodexまたはClaude Codeで開く", "新しいタスクを「AI相談室｜このアプリ」にする", "下の公式URL付きプロンプトを送る"],
+    prompt: deckPrompt("adviser-room", "AI相談室", "私はAIもアプリづくりも初めてです。難しい言葉は普段の日本語で説明し、一度に一つずつ質問してください。このプロジェクトに scripts/support-session.mjs がある場合は、GitHub記録の現在地を確認してください。まだGitHubへ接続できない間はPC内に同期待ちとして残し、接続後にIssueへ同期してください。記録するのはSTEP、成功・失敗・次の一手だけです。会話全文、個人情報、秘密情報、生のコマンド出力は記録しないでください。"),
+    checks: ["対象プロジェクトを開いたAI相談室が見える", "公式ガイドとGitHub記録方針をAIが説明できた"],
+    tip: "次のAIスレッドはGitHub Issueを読み、成功済みの操作をやり直さず続きから再開します。",
     page: 32,
   },
   {
@@ -186,13 +191,13 @@ const practiceSteps = [
   },
   {
     number: "04",
-    label: "最初の依頼を渡す",
-    title: "制作タスクを始めよう",
-    lead: "このアプリでは、AIに『初心者を案内する担当』としての進め方を最初に渡します。",
-    actions: ["Codexで新しいタスクを作る", "名前を「01 はじめてのアプリ制作」にする", "下の文章を貼り、送信する"],
-    prompt: "私はバイブコーディングが初めてです。MacかWindowsかを確認し、必要な作業を一度に一つだけ案内してください。操作の前に何をするか説明し、操作後は成功したか確認してください。パスワードや認証コードはチャットへ貼らせないでください。",
-    checks: ["AIから最初の質問が一つ届いた", "自分のOSを答えられた"],
-    tip: "長い文章を毎回書く必要はありません。最初に役割を渡した後は、普段の言葉で話します。",
+    label: "作業日誌をつなぐ",
+    title: "GitHub記録つきの制作タスクを始めよう",
+    lead: "制作タスクも同じセッションIssueを読み、成功・失敗・commitを自動で追記します。これがAI同士の引き継ぎになります。",
+    actions: ["Codexで新しい制作タスクを作る", "セッションIssueの現在地を読み取ってもらう", "最初の未完了STEPを一つだけ案内してもらう"],
+    prompt: deckPrompt("production-thread", "制作スレッド", "このプロジェクトの制作タスクを始めます。scripts/support-session.mjs の status を安全に確認し、既存のセッションIssueがあれば最後の成功、失敗、次の一手を読み、成功済みの操作を繰り返さないでください。なければstartを使ってください。一度に一操作だけ進め、結果が確定したらeventで構造化記録し、GitHubから再読み取りしてください。コード変更が成功したらテスト後に現在の作業ブランチへcommit・pushし、そのSHAをIssueへ記録してください。mergeとCloudflare公開は別の明示依頼まで行わないでください。"),
+    checks: ["セッションIssueの現在地をAIが説明できた", "最初の未完了STEPが一つだけ示された"],
+    tip: "新しいタスクでも、GitHubの作業日誌を読めば同じ場所から再開できます。",
     page: 35,
   },
   {
@@ -243,11 +248,11 @@ const practiceSteps = [
     number: "09",
     label: "作品と変更を残す",
     title: "GitHubへ記録してもらおう",
-    lead: "今できたファイルと変更の記録をGitHubへ置きます。Gitの操作はAIに任せ、あなたは内容を確認します。",
-    actions: ["GitHubへログインできているか確認する", "自分用の非公開リポジトリを作ってもらう", "保存する内容を説明してもらい、記録を依頼する"],
-    prompt: "今のアプリをGitHubへ非公開で保存したいです。秘密情報が含まれていないか確認し、これから行うことを説明してから、一つずつ進めてください。",
-    checks: ["GitHubで作品名が見える", "今日変えた内容の記録が見える"],
-    tip: "GitHubは設計図と工事記録の保管庫です。コマンドを暗記しなくても、保存された内容を見られれば大丈夫です。",
+    lead: "今できたファイルをcommit・pushし、どの変更が成功したかを同じセッションIssueへ結び付けます。Gitの操作はAIに任せ、あなたは要約を確認します。",
+    actions: ["秘密情報と変更内容をAIに確認してもらう", "テスト成功後に作業ブランチへcommit・pushしてもらう", "commit SHAがセッションIssueへ記録されたことを再確認する"],
+    prompt: deckPrompt("git-save", "制作スレッド", "今のアプリをGitHubへ保存してください。最初に秘密情報、意図しない変更、テスト結果を確認してください。問題がなければ現在の作業ブランチへcommit・pushし、commit SHAと変更の短い要約をセッションIssueへ記録して、GitHubから再読み取りしてください。mainへのmergeはまだ行わないでください。"),
+    checks: ["GitHubにcommitが保存された", "commit SHAがセッションIssueから確認できた"],
+    tip: "コードはcommit、作業の成功・失敗はIssueに残すため、次のAIが両方を確認できます。",
     page: 40,
   },
   {
@@ -342,6 +347,7 @@ function CatalogPage({ item }: { item: (typeof catalogCases)[number] }) {
 }
 
 function PracticePage({ item }: { item: (typeof practiceSteps)[number] }) {
+  const target = item.number === "01" ? "AI相談室" : "制作スレッド";
   return (
     <section className="sheet practice-page">
       <div className="practice-heading"><span>PRACTICE {item.number}</span><p>{item.label}</p></div>
@@ -351,7 +357,7 @@ function PracticePage({ item }: { item: (typeof practiceSteps)[number] }) {
         {item.actions.map((action, index) => <div key={action}><span>{index + 1}</span><p>{action}</p></div>)}
       </div>
       <div className="say-this">
-        <p className="say-label">AIへそのまま言ってみよう</p>
+        <p className="say-label">{target}へそのまま渡す</p>
         <blockquote>{item.prompt}</blockquote>
       </div>
       <div className="practice-footer">
@@ -364,6 +370,7 @@ function PracticePage({ item }: { item: (typeof practiceSteps)[number] }) {
 }
 
 function SetupGuidePage({ item }: { item: (typeof setupGuideSteps)[number] }) {
+  const target = Number.parseInt(item.number, 10) <= 5 ? "AI相談室" : "制作スレッド";
   return (
     <section className="sheet practice-page setup-guide-page">
       <div className="practice-heading"><span>SETUP {item.number}</span><p>{item.label}</p></div>
@@ -373,7 +380,7 @@ function SetupGuidePage({ item }: { item: (typeof setupGuideSteps)[number] }) {
         {item.actions.map((action, index) => <div key={action}><span>{index + 1}</span><p>{action}</p></div>)}
       </div>
       <div className="say-this setup-prompt">
-        <p className="say-label">案内役AIへ渡す詳細プロンプト</p>
+        <p className="say-label">{target}へ渡す詳細プロンプト</p>
         <blockquote>{item.prompt}</blockquote>
       </div>
       <div className="practice-footer">
@@ -571,25 +578,25 @@ export default function Home() {
           <div className="service-flow">
             <div className="sf human"><small>作りたい人</small><b>あなた</b></div><span>↔</span>
             <div className="sf codex"><small>AIの作業担当</small><b>Codex</b></div><span>→</span>
-            <div className="sf gh"><small>設計図と記録</small><b>GitHub</b></div><span>→</span>
+            <div className="sf gh"><small>設計図と作業日誌</small><b>GitHub</b></div><span>→</span>
             <div className="sf cf"><small>動くアプリ</small><b>Cloudflare</b></div>
             <div className="db-link">↕</div>
             <div className="sf d1"><small>情報の倉庫</small><b>Cloudflare D1</b></div>
           </div>
           <div className="google-link"><b>Googleの道具</b><p>カレンダー、スプレッドシート、ドライブなどは、必要になったときにアプリとつなぎます。</p></div>
-          <Point>最初から全部を自分で操作しません。Codexが作業し、あなたは質問に答え、結果を見て希望を伝えます。</Point>
+          <Point>Codexが作業し、成功・失敗・次の一手をGitHubへ記録します。あなたは質問に答え、結果を見て希望を伝えます。</Point>
           <PageNumber value={17} />
         </section>
 
         <section className="sheet rooms">
           <p className="eyebrow purple">AIとの付き合い方</p>
-          <h2>「質問する部屋」と「作る部屋」を分けます</h2>
+          <h2>相談と制作を、GitHubの作業日誌でつなぎます</h2>
           <div className="room-grid">
-            <article className="advice-room"><span>いつでも使う</span><div className="room-icon">?</div><h3>AI相談室</h3><p>言葉の意味を聞く。作りたいものを整理する。おすすめを一つずつ教えてもらう。</p><b>複数のアプリで共通</b></article>
+            <article className="advice-room"><span>対象プロジェクトで使う</span><div className="room-icon">?</div><h3>AI相談室</h3><p>言葉の意味を聞く。現在地を整理する。GitHub Issueから最後の成功と失敗を読む。</p><b>作品ごとの相談スレッド</b></article>
             <div className="room-arrow">→</div>
-            <article className="work-room"><span>作品ごとに作る</span><div className="room-icon">⌘</div><h3>制作室</h3><p>フォルダを開く。必要な道具を確認する。ファイルを作り、動かし、公開する。</p><b>アプリごとに別のタスク</b></article>
+            <article className="work-room"><span>作業ごとに作る</span><div className="room-icon">⌘</div><h3>制作スレッド</h3><p>ファイルを作り、動かし、commitする。結果を同じGitHub Issueへ自動で返す。</p><b>作業ごとに別のタスク</b></article>
           </div>
-          <div className="pin-prompt"><b>最初に作る名前</b><code>AI相談室｜はじめてのアプリづくり</code><p>あとで迷わないように、ピン留めしておきます。</p></div>
+          <div className="pin-prompt"><b>AI同士の共通記録</b><code>GitHub Issue｜AI相談セッション</code><p>会話全文ではなく、STEP・成功・失敗・次の一手だけを残します。</p></div>
           <PageNumber value={18} />
         </section>
 
@@ -650,14 +657,14 @@ export default function Home() {
           <h2>ゆっくり準備して、後半で一つ作ります</h2>
           <div className="timeline">
             <div><time>13:00</time><span /><p><b>知る</b>アプリ、バイブコーディング、役割分担</p></div>
-            <div><time>14:05</time><span /><p><b>AIを準備</b>デスクトップアプリ、ログイン、AI相談室</p></div>
+            <div><time>14:05</time><span /><p><b>AIを準備</b>デスクトップアプリ、プロジェクトのAI相談室</p></div>
             <div><time>15:00</time><span /><p><b>休憩</b>15分。困っているところを個別確認</p></div>
             <div><time>15:15</time><span /><p><b>場所を準備</b>GitHub・Cloudflareの登録</p></div>
-            <div><time>15:55</time><span /><p><b>制作室へ</b>スターター取得、環境の確認</p></div>
+            <div><time>15:55</time><span /><p><b>制作へ</b>スターター取得、GitHub作業日誌の開始</p></div>
             <div><time>16:50</time><span /><p><b>一つ変える</b>タイトル、項目、色、用途を音声で依頼</p></div>
             <div><time>17:25</time><span /><p><b>公開・振り返り</b>できる人は公開URLを確認</p></div>
           </div>
-          <div className="must-goal"><b>全員の成功</b><span>相談室を作る</span><span>アカウントを準備</span><span>アプリを一つ変える</span></div>
+          <div className="must-goal"><b>全員の成功</b><span>AI相談室を作る</span><span>Issue記録を始める</span><span>アプリを一つ変える</span></div>
           <PageNumber value={44} />
         </section>
 
@@ -681,7 +688,7 @@ export default function Home() {
             <details open><summary><span>Q1</span>知らない言葉が出てきました</summary><p>「初心者にも分かる言葉で、たとえ話を使って説明してください」と相談します。</p></details>
             <details><summary><span>Q2</span>画面が説明と違います</summary><p>画面全体を撮り、パスワードやメールアドレスを隠してから見せます。</p></details>
             <details><summary><span>Q3</span>エラーの赤い文字が出ました</summary><p>省略せずにAIへ見せ、「何が起きていて、次に一つ何をすればいい？」と聞きます。</p></details>
-            <details><summary><span>Q4</span>公開まで終わりませんでした</summary><p>制作タスクに途中の記録が残ります。講座後に同じ場所から再開できます。</p></details>
+            <details><summary><span>Q4</span>公開まで終わりませんでした</summary><p>GitHubのセッションIssueに、最後の成功・失敗・次の一手が残ります。次のAIはIssueを読み、同じ場所から再開します。</p></details>
           </div>
           <Point>分からないときに、分からないと言えることも立派な指示です。</Point>
           <PageNumber value={47} />
@@ -714,6 +721,8 @@ export default function Home() {
             <a href="https://claude.com/download" target="_blank" rel="noreferrer">Claude</a>
             <a href="https://docs.github.com/get-started/start-your-journey/creating-an-account-on-github" target="_blank" rel="noreferrer">GitHub</a>
             <a href="https://developers.cloudflare.com/fundamentals/setup/account/create-account/" target="_blank" rel="noreferrer">Cloudflare</a>
+            <a href={SUPPORT_SITE_URL}>公式ガイド</a>
+            <a href={SUPPORT_REPOSITORY_URL} target="_blank" rel="noreferrer">公開リポジトリ</a>
           </div>
           <PageNumber value={49} />
         </section>

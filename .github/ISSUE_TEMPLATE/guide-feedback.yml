@@ -1,0 +1,61 @@
+name: 教材・サイト改善
+description: 公開サポートサイト、教材、プロンプト、スキルの改善を提案する
+title: "[教材改善] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        このフォームは、公開教材そのものの改善専用です。
+        参加者個人の成功・失敗ログは、自分のprivate app repoにあるセッションIssueへ記録してください。
+        パスワード、認証コード、トークン、メールアドレス、アカウントID、会話全文、コマンドやエラーの生出力は書かないでください。
+  - type: dropdown
+    id: target
+    attributes:
+      label: 改善したい対象
+      options:
+        - サポートサイト
+        - A4教材
+        - AI相談室の開始プロンプト
+        - 初心者サポートスキル
+        - GitHub記録ツール
+        - その他の公開資料
+    validations:
+      required: true
+  - type: input
+    id: location
+    attributes:
+      label: 該当ページ・STEP・ファイル
+      description: 公開URL、ページ名、STEP名、またはリポジトリ内の相対パスを書いてください。
+      placeholder: 例：実践サポート STEP 3
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: 分かりにくかったこと・起きたこと
+      description: 個人情報や生のエラー出力を除き、短く説明してください。
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: こうなると分かりやすい
+      description: 望ましい説明、表示、手順を教えてください。
+    validations:
+      required: true
+  - type: textarea
+    id: useful
+    attributes:
+      label: 役に立った案内
+      description: 残したい説明や、実際に先へ進めた案内があれば書いてください。
+    validations:
+      required: false
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: 公開前の確認
+      options:
+        - label: 個人情報、秘密情報、会話全文、コマンドやエラーの生出力を含めていません
+          required: true
+        - label: これは参加者個人のセッションログではなく、公開教材の改善提案です
+          required: true

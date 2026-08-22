@@ -1,6 +1,6 @@
 interface:
   display_name: "街場のAI屋さん 初心者サポート"
-  short_description: "GitHub・Cloudflare接続を一操作ずつ確認"
-  default_prompt: "$machiba-beginner-support を使って、GitHubとCloudflareの接続準備を安全に一操作ずつ確認してください。"
+  short_description: "GitHub記録と接続確認を一操作ずつ安全に伴走する"
+  default_prompt: "$machiba-beginner-support を使って、このプロジェクトのGitHub記録を始め、接続準備から一操作ずつ案内してください。"
 policy:
   allow_implicit_invocation: true

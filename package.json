@@ -9,8 +9,9 @@
     "dev": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext dev",
     "build": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext build",
     "start": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext start",
-    "test": "npm run test:state && npm run lint && npm run build",
-    "test:state": "node --experimental-strip-types --test app/support-state.test.ts",
+    "test": "npm run test:state && npm run test:support-session && npm run lint && npm run build",
+    "test:state": "node --experimental-strip-types --test app/support-*.test.ts",
+    "test:support-session": "node --test scripts/support-session*.test.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "drizzle-kit generate"
   },

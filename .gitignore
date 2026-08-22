@@ -41,3 +41,6 @@ yarn-error.log*
 
 # local AI tool settings
 /.claude/settings.local.json
+
+# defense in depth; runtime state normally lives under .git/machiba-support-session
+/.machiba-support-session/

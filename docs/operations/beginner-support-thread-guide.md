@@ -1,48 +1,160 @@
-# 初心者質問スレッドの進め方
+# GitHub記録型・初心者サポートの運用
 
-このガイドは、参加者の質問へ答えるAIとサポート担当者の共通手順です。目的は知識を試すことではなく、アプリづくりを始められる現在地を一緒に確認することです。
+このガイドは、参加者のプロジェクトを開いたCodex／Claude Codeと、講師が共通して使う運用手順です。GitHubをコード置き場だけでなく、AI相談スレッドの安全な外部記憶として使います。
 
-## 最初に接続を確認する理由
-
-「どのくらいパソコンが得意ですか」と先に聞いても、本人が答えにくい場合があります。GitHubとCloudflareの準備を一つずつ確認すると、困っている場所が分かり、必要な説明量も自然に見えてきます。
-
-確認するのは次の二つです。
-
-- PC・CodexまたはClaude CodeからGitHubへ接続できる
-- 対象プロジェクトからWranglerでCloudflareへ接続できる
-
-GitHubとCloudflareを直接連携する設定ではありません。D1作成、公開、自動デプロイも、この最初の確認には含みません。
-
-## スレッドの状態
+## 全体像
 
 ```text
-開始
+対象プロジェクトでAI相談スレッドを開始
   ↓
-OS・プロジェクト確認
+GitHub接続を安全に確認
   ↓
-GitHub接続確認
+参加者自身のprivate repoに1相談案件1 Issueを開始／再開
   ↓
-Cloudflare接続確認
+成功・失敗・blocked・次の一手を構造化して記録
   ↓
-接続準備完了？
-  ├─ いいえ → 一操作ずつセットアップ／担当者へ引き継ぎ
-  └─ はい   → 案内方法を確認 → 作りたいものの相談
+書き込み後にread-back
+  ↓
+依頼されたコード変更はcommit・pushし、remote SHAをIssueへ記録
+  ↓
+次のスレッドがIssueを読み、続きから再開
 ```
 
-接続状態は「未確認」「準備中」「接続済み」の三つで表示します。片方が接続済みなら、その結果を保持し、もう片方だけを進めます。
+普通のChatGPT・Claudeは説明担当として利用します。GitHubコネクタの有無にかかわらず、この自動セッション記録は行いません。標準のAI相談室は、対象プロジェクトを開き、ローカル記録ツールを確認できるCodexまたはClaude Codeです。
 
-## 診断結果を公開しない
+## 正本
 
-`gh auth status`やWranglerの`whoami`は、ユーザー名、メールアドレス、アカウントIDを表示する場合があります。AIが確認するときは、標準出力と標準エラーを両方捨て、終了コードだけを使います。未加工の出力をAIのツール実行記録へ残しません。
+- [参加者向けサポートサイト](https://machiba-ai-beginner-guide.icloudaichi.chatgpt.site/)
+- [公開教材リポジトリ](https://github.com/icloudaichi/machiba-ai-beginner-support)
+- [標準開始プロンプト](../participants/adviser-room-prompt.md)
+- [AI向けスキル](../../.agents/skills/machiba-beginner-support/SKILL.md)
+- [GitHubセッション記録仕様](../../.agents/skills/machiba-beginner-support/references/github-session-recording.md)
 
-診断が失敗しても、出力を表示して再実行しません。まずCLIやWranglerが存在するかという一段階だけを無出力で確認し、次の操作を一つだけ案内します。それでも状態文が必要なら、本人の端末で確認してもらい、個人情報を除いた一般的な状態だけを一つ尋ねます。コマンド出力の全文やスクリーンショットは求めません。
+## 記録先
+
+標準の記録先は、参加者自身の**非公開アプリリポジトリ**です。
+
+| 内容 | 記録先 |
+| --- | --- |
+| 参加者の成功・失敗・次の一手 | 参加者自身のprivate app repoのセッションIssue |
+| 依頼されたコード変更 | 同じapp repoのcommitとpush |
+| サイトや教材そのものの改善提案 | 公開教材repoの[教材改善Issue Form](https://github.com/icloudaichi/machiba-ai-beginner-support/issues/new/choose) |
+| 会話全文・生出力・秘密・個人情報 | どこにも記録しない |
+
+公開教材repoへ参加者ログを投稿しません。参加者のapp repoが公開の場合は、自動記録を止め、本人が公開範囲を理解して明示許可したときだけ`--allow-public`を使います。
+
+## 最初の接続とIssue開始
+
+1. OSと対象プロジェクトを確認する。
+2. `gh auth status`を無出力で実行し、終了コードだけでGitHub接続を判定する。
+3. GitHub接続後、対象repoと公開範囲を確認する。
+4. 標準開始プロンプトの限定承認を確認する。
+5. `scripts/support-session.mjs`がある場合だけ、`--help`を確認する。
+6. 同じcloneでは`status`を実行し、進行中のIssue番号と同期状態を確認する。
+7. 進行中のセッションがなければ`start`する。別cloneで再開する場合は、本人が示したIssue番号で`resume`する。
+8. private repoなら作成または再開されたIssueをread-backする。
+9. 読み戻せた場合だけ、参加者へ「記録済み」と伝える。
+10. その後、Cloudflare接続確認へ進む。
+
+記録ツールは開始・再開時にGitHubのcanonical repo名と不変repo IDをローカル状態へ結び付けます。その後の操作では現在のoriginとGitHub repo IDを照合し、別repoへ変わっていれば停止します。GitHub操作も結び付けたrepoを明示して行うため、同じIssue番号を持つ別repoへ誤記録しません。
+
+### 記録ツール
+
+対象プロジェクトにスクリプトがある場合だけ使います。
+
+```bash
+node scripts/support-session.mjs --help
+node scripts/support-session.mjs status
+node scripts/support-session.mjs start --goal "秘密情報を含まない今日の目的"
+node scripts/support-session.mjs resume --issue "Issue番号"
+```
+
+主な操作は次の通りです。
+
+```bash
+node scripts/support-session.mjs event \
+  --type success \
+  --step "GitHub接続" \
+  --summary "PCからGitHubへの接続を確認" \
+  --next "Cloudflare接続を確認する"
+
+node scripts/support-session.mjs event \
+  --type failure \
+  --step "Cloudflare接続" \
+  --summary "Wranglerを利用できない" \
+  --next "導入方法を一つ確認する"
+
+node scripts/support-session.mjs event \
+  --type blocked \
+  --step "Cloudflare認証" \
+  --summary "認証を完了できず中断" \
+  --next "講師と画面を確認する"
+
+node scripts/support-session.mjs complete \
+  --summary "今日の目的を完了"
+```
+
+`status`の安全なJSON出力には、連携済みの場合だけIssue番号が含まれます。owner名、repo名、URL、個人情報は出力しません。
+
+`complete`は今日の目的が完了したことを確認した後に使います。完了コメントをread-backし、Issueをcloseして、その状態もread-backします。このcloseは標準開始プロンプトの限定承認に含まれます。
+
+公開repoでも`resume`によるIssueの読み取りはできます。ただし、その後の追記・同期・完了は、本人が公開範囲を理解して明示許可した場合だけ、該当操作へ`--allow-public`を付けます。一度許可すると、そのセッション中だけ許可状態が保持されます。
+
+終了コードの意味：
+
+- `0`：GitHubでread-backまで確認済み、または安全な状態照会が成功
+- `1`：入力またはセッション状態のエラー
+- `2`：ローカルへ保存したが、GitHubでは未確認
+
+終了コード`2`を「記録済み」と表示しません。接続が戻ったら次を使います。
+
+```bash
+node scripts/support-session.mjs sync
+```
+
+スクリプトがない、実行できない、または`--help`と手順が違う場合はコマンドを推測しません。GitHub自動記録は利用できないと伝え、[再開カード](../../.agents/skills/machiba-beginner-support/references/resume-card.md)へ切り替えます。
+
+## 状態変化の記録
+
+会話のたびではなく、次の場合だけIssueへイベントを追記します。
+
+- 接続、インストール、認証、テストなどが成功した
+- 操作に失敗し、原因分類または次の一手が変わった
+- 同じ場所で3回または約7分止まり`blocked`になった
+- 中断した作業を再開した
+- remoteでcommit SHAを確認した
+- 今日の目的を完了した
+
+イベントには、STEP、短い要約、確認方法の要約、次の一手だけを入れます。生コマンド、生エラー、会話全文、スクリーンショット、個人情報、秘密情報は入れません。
+
+## コードを変更した場合
+
+セッション記録の限定承認だけではコードを変更しません。参加者が変更を依頼した場合にだけ、その依頼範囲で次を自動的に行います。
+
+1. 変更と必要な検証を行う。
+2. stage対象に秘密情報、生成物、範囲外の変更がないことを確認する。
+3. commitし、作業中のbranchへpushする。
+4. remote上で同じcommit SHAをread-backする。
+5. 確認できた40桁full SHAを`--commit`へ渡し、短い変更要約とともにセッションIssueへ記録する。
+6. Issueコメントもread-backする。
+
+```bash
+node scripts/support-session.mjs event \
+  --type success \
+  --step "GitHub保存" \
+  --summary "依頼された変更を検証し、作業branchへ保存" \
+  --next "次の希望を確認する" \
+  --commit "push済みの40桁full SHA"
+```
+
+ツールは40桁full SHAが現在repoに存在すること、現在branchのpush先がセッションのGitHub repoと同じこと、`git ls-remote`で確認したlive remote branchへSHAが到達していることを無出力で確認します。ローカルcommitだけ、手元のtracking refだけ、pushの成功表示だけでは「GitHubへ保存済み」にしません。mergeとCloudflare deployは、参加者が別に明示依頼するまで行いません。
 
 ## 一度に一つだけ進める
 
-毎回の返答には次を含めます。
+毎回の返答は次の形にします。
 
 ```text
-接続状態：
+記録状態：未開始／記録済み／未反映
 GitHub：未確認／準備中／接続済み
 Cloudflare：未確認／準備中／接続済み
 
@@ -52,52 +164,29 @@ Cloudflare：未確認／準備中／接続済み
 終わったら教えてほしいこと：一つだけ
 ```
 
-参加者には次の短い返事が使えることを伝えます。
+参加者は「できました」「画面が違います」「エラーが出ました」「分かりません」のいずれかで返せます。
 
-- できました
-- 画面が違います
-- エラーが出ました
-- 分かりません
+## 再開
 
-「分かりません」と返された場合も、説明をまとめて増やしません。今見えている画面を一つ確認します。
+1つのrepoでは同時に1つのサポートセッションだけを進行させます。新しいAIスレッドでも、同じ相談目的を続けるなら新しいIssueを作りません。
 
-## 質問スレッドと作業タスク
+同一cloneのworktreeはGit共通領域の状態を共有します。最初に`status`を実行し、Issue番号と同期状態を確認します。
 
-質問スレッドは、説明、読み取りだけの接続確認、現在地の整理に使います。
+別cloneまたはローカル状態消失時は、本人が示したIssue番号で再開します。
 
-次の作業が必要なら、内容と影響を説明し、本人の確認後にセットアップ・制作用の別タスクへ移します。
+```bash
+node scripts/support-session.mjs resume --issue "Issue番号"
+```
 
-- GitHub CLIやWranglerなどのインストール
-- GitHub・Cloudflareへのログイン
-- ファイルの変更
-- D1作成
-- GitHubへのpush
-- Cloudflareへの公開
+`resume`は現在repoのIssue本文にあるセッションmarkerと、コメントのイベント識別子をGitHubから読み戻して復元します。タイトルが似ているだけのIssueを推測で選びません。Issue番号を確認できなければ、本人へ一問だけ尋ねます。
 
-移動時は再開カードを作り、別タスクが最初から聞き直さなくてよい状態にします。
+Issueをread-backし、最後の成功、`blocked`理由、`次にする一つ`から再開します。成功済みの操作を最初から繰り返しません。
 
-## 準備後に案内方法を決める
+## 講師が確認すること
 
-セットアップ中に、コピー、メール認証、フォルダ操作、画面表示の共有、結果報告ができたかを確認します。既に見えた操作は質問し直しません。
-
-次のどれが合いそうかを提案し、本人に確認します。
-
-- ゆっくり伴走：ボタンや画面の場所から説明する
-- 一操作ずつ：操作と成功画面を一つずつ示す
-- 要点案内：目的、操作、確認基準を短く示す
-
-案内方法はいつでも変更できます。参加者をレベル番号で呼んだり、得意・不得意を評価したりしません。
-
-## 止まった場合
-
-- 同じ場所の1回目：操作を言い換え、成功時の表示を伝える
-- 2回目：秘密情報を除いた画面またはエラー全文を確認する
-- 3回目または約7分：推測を止め、再開カードを作る
-
-認証が進まない場合は、公開を必須にしません。ローカルでスターターを変更する体験へ切り替え、接続作業は後から再開できます。
-
-## 安全と共有
-
-パスワード、認証コード、トークン、秘密鍵、カード情報、個人情報を質問しません。接続診断のコマンド出力は共有せず、終了コードによる「接続できた／できなかった」の状態だけを使います。ほかの画面を共有するときも、ユーザー名、メールアドレス、アカウントIDを隠します。
-
-再開カードや会話内容は自動送信しません。本人へ内容を見せ、秘密情報がないことを確認し、本人が選んだ項目だけを共有します。
+- 記録先が参加者のprivate app repoになっている
+- 公開repoに`--allow-public`なしで書き込んでいない
+- Issue番号とread-back済み状態を確認できる
+- 会話全文、生出力、個人情報、秘密情報がIssueにない
+- コード変更がある場合、remote commit SHAがIssueに記録されている
+- 教材改善と参加者ログが混在していない

@@ -10,6 +10,7 @@ export type ConnectionStatus =
   | "connection-blocked";
 export type SetupGate = "pending" | "ready" | "local-fallback";
 export type SupportMode = "" | "slow" | "step" | "summary";
+export type GitHubLogStatus = "not-started" | "local-queued" | "synced" | "blocked";
 export type StepId =
   | "device"
   | "project-folder"
@@ -24,7 +25,7 @@ export type StepId =
   | "publish";
 
 export type SupportProgress = {
-  version: 2;
+  version: 3;
   os: OsChoice;
   ai: AiChoice;
   projectStatus: ProjectStatus;
@@ -32,6 +33,8 @@ export type SupportProgress = {
   cloudflareStatus: ConnectionStatus;
   setupGate: SetupGate;
   supportMode: SupportMode;
+  githubLogStatus: GitHubLogStatus;
+  githubIssueNumber: number | null;
   currentStep: StepId;
   completedSteps: StepId[];
   updatedAt: number;
@@ -52,7 +55,7 @@ export const stepOrder: StepId[] = [
 ];
 
 export const initialProgress: SupportProgress = {
-  version: 2,
+  version: 3,
   os: "",
   ai: "",
   projectStatus: "not-ready",
@@ -60,6 +63,8 @@ export const initialProgress: SupportProgress = {
   cloudflareStatus: "unknown",
   setupGate: "pending",
   supportMode: "",
+  githubLogStatus: "not-started",
+  githubIssueNumber: null,
   currentStep: "device",
   completedSteps: [],
   updatedAt: 0,
@@ -82,10 +87,13 @@ export function deriveGate(
   projectStatus: ProjectStatus,
   githubStatus: ConnectionStatus,
   cloudflareStatus: ConnectionStatus,
+  githubLogStatus: GitHubLogStatus = "synced",
 ): SetupGate {
   if (projectStatus !== "ready") return "pending";
-  if (githubStatus === "connected" && cloudflareStatus === "connected") return "ready";
   if (isBlocked(githubStatus) || isBlocked(cloudflareStatus)) return "local-fallback";
+  if (githubLogStatus === "blocked" || githubLogStatus === "local-queued") return "local-fallback";
+  if (githubLogStatus !== "synced") return "pending";
+  if (githubStatus === "connected" && cloudflareStatus === "connected") return "ready";
   return "pending";
 }
 
@@ -120,23 +128,41 @@ export function sanitizeProgress(value: unknown): SupportProgress {
   const supportMode = allowedModes.includes(candidate.supportMode as SupportMode)
     ? (candidate.supportMode as SupportMode)
     : "";
+  const allowedLogStatuses: GitHubLogStatus[] = ["not-started", "local-queued", "synced", "blocked"];
+  const githubLogStatus = allowedLogStatuses.includes(candidate.githubLogStatus as GitHubLogStatus)
+    ? (candidate.githubLogStatus as GitHubLogStatus)
+    : "not-started";
+  const githubIssueNumber = typeof candidate.githubIssueNumber === "number"
+    && Number.isSafeInteger(candidate.githubIssueNumber)
+    && candidate.githubIssueNumber > 0
+    ? candidate.githubIssueNumber
+    : null;
+  const requestedStep = isStepId(candidate.currentStep) ? candidate.currentStep : "device";
+  const currentStep = (candidate.version ?? 0) < 3
+    && githubStatus === "connected"
+    && githubLogStatus === "not-started"
+    && stepOrder.indexOf(requestedStep) > stepOrder.indexOf("github-connect")
+    ? "github-connect"
+    : requestedStep;
 
   return {
-    version: 2,
+    version: 3,
     os,
     ai,
     projectStatus,
     githubStatus,
     cloudflareStatus,
-    setupGate: deriveGate(projectStatus, githubStatus, cloudflareStatus),
+    setupGate: deriveGate(projectStatus, githubStatus, cloudflareStatus, githubLogStatus),
     supportMode,
-    currentStep: isStepId(candidate.currentStep) ? candidate.currentStep : "device",
+    githubLogStatus,
+    githubIssueNumber,
+    currentStep,
     completedSteps,
     updatedAt: typeof candidate.updatedAt === "number" ? candidate.updatedAt : 0,
   };
 }
 
-export function nextConnectionStep(progress: Pick<SupportProgress, "projectStatus" | "githubStatus" | "cloudflareStatus">): StepId {
+export function nextConnectionStep(progress: Pick<SupportProgress, "projectStatus" | "githubStatus" | "cloudflareStatus"> & Partial<Pick<SupportProgress, "githubLogStatus">>): StepId {
   if (progress.projectStatus !== "ready") return "project-folder";
 
   if (
@@ -145,6 +171,8 @@ export function nextConnectionStep(progress: Pick<SupportProgress, "projectStatu
     progress.githubStatus === "account-blocked"
   ) return "github-account";
   if (progress.githubStatus === "account-ready" || progress.githubStatus === "connection-blocked") return "github-connect";
+  if (progress.githubStatus === "connected" && progress.githubLogStatus !== undefined
+    && progress.githubLogStatus !== "synced" && progress.githubLogStatus !== "local-queued") return "github-connect";
 
   if (
     progress.cloudflareStatus === "unknown" ||

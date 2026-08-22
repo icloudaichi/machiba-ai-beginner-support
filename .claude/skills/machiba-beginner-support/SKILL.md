@@ -1,6 +1,6 @@
 ---
 name: machiba-beginner-support
-description: GitHubやCloudflareの接続準備で止まった初心者を、安全な状態確認から一操作ずつ案内し、準備後に説明の細かさを調整する。
+description: 対象プロジェクトでGitHub・Cloudflare接続を一操作ずつ確認し、1相談案件1 Issueへ安全な成功・失敗・次の一手を記録しながら初心者を伴走する。
 ---
 
 # 街場のAI屋さん・初心者サポート
