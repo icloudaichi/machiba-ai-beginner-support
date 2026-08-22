@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import SupportGuide from "./support-guide";
 
 const pages = [
   ["00", "はじめに"],
@@ -131,8 +132,8 @@ const setupGuideSteps = [
     title: "GitHubへ接続しよう",
     lead: "ブラウザで作ったGitHubアカウントと、このPCで働くCodexを一度つなぎます。接続後はAIが保存作業を進められます。",
     actions: ["CodexにGitHub CLIがあるか確認してもらう", "なければ公式の方法で導入してもらう", "ブラウザ認証を開き、自分で許可して接続確認を行う"],
-    prompt: "このPCと私のGitHubアカウントを接続してください。最初にGitHub CLIの有無と、すでにログイン済みかを安全な確認コマンドで調べ、結果を初心者向けに説明してください。不足している場合だけ公式の方法で導入してください。認証はブラウザを使う方法を優先し、パスワード、確認コード、アクセストークンをチャットへ貼らせないでください。実行する操作は必ず一つずつ説明し、私の『できました』を待ってください。接続後はログイン状態とGitHubユーザー名を確認し、完了・未完了・次にすることを報告してください。",
-    checks: ["CodexがGitHubのユーザー名を確認できた", "秘密の文字をチャットへ貼らずに接続できた"],
+    prompt: "このPCとGitHubの接続状況を確認してください。最初にGitHub CLIの有無を確認し、未導入なら勝手に入れず必要な作業を一つ説明してください。CLIがある場合は、OSに合う方法で gh auth status の標準出力と標準エラーを抑制し、終了ステータスだけを確認してください。コマンド出力、ユーザー名、メール、組織名はチャットへ表示せず、『接続済み／未接続』だけを報告してください。認証を始める前に説明して私の返事を待ち、パスワード、確認コード、アクセストークンは貼らせないでください。",
+    checks: ["Codexが出力を表示せず接続状態だけを確認できた", "秘密の文字をチャットへ貼らずに接続できた"],
     tip: "ここでつなぐのは最初の一度です。接続後はCodexへ『GitHubに保存して』と頼めます。",
     page: 29,
   },
@@ -142,7 +143,7 @@ const setupGuideSteps = [
     title: "Cloudflareへ接続しよう",
     lead: "CloudflareアカウントとCodexをブラウザ認証でつなぎます。接続後は公開やデータベース作成をAIへ頼めます。",
     actions: ["CodexにWranglerがあるか確認してもらう", "プロジェクト内で使える状態か確認する", "ブラウザの認証画面で、自分のCloudflareアカウントを許可する"],
-    prompt: "このプロジェクトと私のCloudflareアカウントを接続してください。最初にWranglerが使えるかと、すでにログイン済みかを確認し、結果を初心者向けに説明してください。不足しているものだけ公式手順で準備してください。ブラウザ認証を使い、APIトークン、パスワード、確認コードをチャットへ表示させないでください。ログイン画面を開く前に何が起きるか説明し、私の『できました』を待ってください。接続後は安全な確認方法でアカウントが認識されているか調べ、完了・未完了・次にすることを報告してください。まだ公開やデータベース作成は行わないでください。",
+    prompt: "このプロジェクトとCloudflareの接続状況を確認してください。package.jsonとプロジェクト内のWranglerだけを確認し、npxで未導入パッケージを自動取得しないでください。ローカルのWranglerがある場合だけ、whoamiの標準出力と標準エラーを抑制し、終了ステータスだけを確認してください。コマンド出力、アカウント名、メール、Account IDは表示せず、『接続済み／未接続』だけを報告してください。導入や認証を始める前に説明して私の返事を待ち、APIトークン、パスワード、確認コードは貼らせないでください。まだ公開やD1作成は行わないでください。",
     checks: ["CodexがCloudflareへのログインを確認できた", "まだ公開せず、接続だけで止まっている"],
     tip: "接続と公開を分けることで、何が起きたかを落ち着いて確認できます。",
     page: 30,
@@ -200,7 +201,7 @@ const practiceSteps = [
     title: "必要な道具だけをそろえよう",
     lead: "Codexが今のPCを確認し、足りない道具だけを見つけます。名前を覚える必要はありません。",
     actions: ["Git・Node.js・GitHub CLI・Wranglerがあるか調べてもらう", "不足しているものの役割を説明してもらう", "公式の方法で一つずつ導入し、毎回確認する"],
-    prompt: "このPCでスターターアプリを動かす準備を確認してください。足りないものだけを公式の方法で案内し、インストールやログインの前には必ず説明してください。",
+    prompt: "このPCでスターターアプリを動かす準備を確認してください。足りないものだけを公式の方法で案内し、インストールやログインの前には必ず説明してください。Wranglerはpackage.jsonとプロジェクト内だけを確認し、npxで自動取得しないでください。GitHubやCloudflareの接続確認が必要な場合は、コマンド出力を抑制して終了ステータスだけを使い、ユーザー名、メール、Account IDなどを表示しないでください。",
     checks: ["AIが確認結果を一覧にした", "不足分の導入後に成功確認ができた"],
     tip: "黒い画面が出ても、自分で文字を打つとは限りません。Codexが作業し、あなたは結果を確認します。",
     page: 36,
@@ -386,29 +387,36 @@ function SetupGuidePage({ item }: { item: (typeof setupGuideSteps)[number] }) {
 
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [view, setView] = useState<"support" | "deck">("support");
 
   return (
-    <main>
+    <main className={`site-view-${view}`}>
       <header className="site-bar">
-        <a href="#top" className="brand" aria-label="最初のページへ">
+        <a href="#support" className="brand" aria-label="参加者サポートへ" onClick={() => { setView("support"); setMenuOpen(false); }}>
           <span className="brand-mark">街</span>
           <span>街場のAI屋さん<br /><small>はじめてのアプリづくり</small></span>
         </a>
         <div className="site-actions">
+          <button className={view === "support" ? "active" : ""} onClick={() => { setView("support"); setMenuOpen(false); }}>実践サポート</button>
+          <button className={view === "deck" ? "active" : ""} onClick={() => { setView("deck"); setMenuOpen(false); }}>A4教材</button>
           <button className="outline-button" onClick={() => window.print()}>A4で印刷</button>
-          <button className="menu-button" onClick={() => setMenuOpen(!menuOpen)} aria-expanded={menuOpen}>目次</button>
+          {view === "deck" && <button className="menu-button" onClick={() => setMenuOpen(!menuOpen)} aria-expanded={menuOpen}>目次</button>}
         </div>
       </header>
 
-      <nav className={menuOpen ? "toc open" : "toc"} aria-label="章の目次">
-        {pages.map(([number, label]) => (
-          <a key={number} href={number === "00" ? "#top" : `#chapter-${number}`} onClick={() => setMenuOpen(false)}>
-            <span>{number}</span>{label}
-          </a>
-        ))}
-      </nav>
+      {view === "deck" && (
+        <nav className={menuOpen ? "toc open" : "toc"} aria-label="章の目次">
+          {pages.map(([number, label]) => (
+            <a key={number} href={number === "00" ? "#top" : `#chapter-${number}`} onClick={() => setMenuOpen(false)}>
+              <span>{number}</span>{label}
+            </a>
+          ))}
+        </nav>
+      )}
 
-      <div className="deck" id="top">
+      <SupportGuide active={view === "support"} onOpenDeck={() => { setView("deck"); setMenuOpen(false); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
+
+      <div className={`deck${view === "deck" ? "" : " deck-hidden"}`} id="top">
         <section className="sheet cover">
           <div className="cover-badge">はじめてでもわかる</div>
           <p className="cover-kicker">MACHIBA NO AI-YASAN</p>
