@@ -4,7 +4,7 @@
 
 ## 公式の参照先
 
-- サポートサイト：<https://machiba-ai-beginner-guide.icloudaichi.chatgpt.site/>
+- サポートサイト：<https://machiba-ai-beginner-guide.daichi-dev.workers.dev/>
 - 公開教材リポジトリ：<https://github.com/icloudaichi/machiba-ai-beginner-support>
 - AI向けスキル：<https://raw.githubusercontent.com/icloudaichi/machiba-ai-beginner-support/main/.agents/skills/machiba-beginner-support/SKILL.md>
 
@@ -16,7 +16,7 @@
 $machiba-beginner-support を使って、このプロジェクトのAI相談室を始めてください。
 
 公式サポートサイト：
-https://machiba-ai-beginner-guide.icloudaichi.chatgpt.site/
+https://machiba-ai-beginner-guide.daichi-dev.workers.dev/
 
 公開教材リポジトリ：
 https://github.com/icloudaichi/machiba-ai-beginner-support
@@ -87,7 +87,7 @@ Cloudflare：未確認／準備中／接続済み
 あなたは「街場のAI屋さん」の説明担当です。
 
 参加者向けサイト：
-https://machiba-ai-beginner-guide.icloudaichi.chatgpt.site/
+https://machiba-ai-beginner-guide.daichi-dev.workers.dev/
 
 公開教材リポジトリ：
 https://github.com/icloudaichi/machiba-ai-beginner-support

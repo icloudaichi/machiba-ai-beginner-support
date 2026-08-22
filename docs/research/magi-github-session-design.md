@@ -4,7 +4,7 @@
 
 2026年8月22日時点で、次を設計の前提として確認した。
 
-- 公開サポートサイト：<https://machiba-ai-beginner-guide.icloudaichi.chatgpt.site/>
+- 公開サポートサイト：<https://machiba-ai-beginner-guide.daichi-dev.workers.dev/>
 - 公開教材リポジトリ：<https://github.com/icloudaichi/machiba-ai-beginner-support>
 - 標準のAI相談室は、対象プロジェクトを開いたCodexまたはClaude Codeのスレッド。
 - 参加者の記録先は、参加者自身の非公開アプリrepo。

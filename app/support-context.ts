@@ -1,4 +1,4 @@
-export const SUPPORT_SITE_URL = "https://machiba-ai-beginner-guide.icloudaichi.chatgpt.site/";
+export const SUPPORT_SITE_URL = "https://machiba-ai-beginner-guide.daichi-dev.workers.dev/";
 export const SUPPORT_REPOSITORY_URL = "https://github.com/icloudaichi/machiba-ai-beginner-support";
 export const SUPPORT_SKILL_URL =
   "https://raw.githubusercontent.com/icloudaichi/machiba-ai-beginner-support/main/.agents/skills/machiba-beginner-support/SKILL.md";

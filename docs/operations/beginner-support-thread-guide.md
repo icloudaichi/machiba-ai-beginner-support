@@ -24,7 +24,7 @@ GitHub接続を安全に確認
 
 ## 正本
 
-- [参加者向けサポートサイト](https://machiba-ai-beginner-guide.icloudaichi.chatgpt.site/)
+- [参加者向けサポートサイト](https://machiba-ai-beginner-guide.daichi-dev.workers.dev/)
 - [公開教材リポジトリ](https://github.com/icloudaichi/machiba-ai-beginner-support)
 - [標準開始プロンプト](../participants/adviser-room-prompt.md)
 - [AI向けスキル](../../.agents/skills/machiba-beginner-support/SKILL.md)

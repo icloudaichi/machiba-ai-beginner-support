@@ -1,7 +1,7 @@
 blank_issues_enabled: false
 contact_links:
   - name: 初心者向けサポートサイト
-    url: https://machiba-ai-beginner-guide.icloudaichi.chatgpt.site/
+    url: https://machiba-ai-beginner-guide.daichi-dev.workers.dev/
     about: まずはこちらで学習手順と接続ガイドを確認してください。
   - name: 参加者のAI相談ログについて
     url: https://github.com/icloudaichi/machiba-ai-beginner-support/blob/main/docs/operations/beginner-support-thread-guide.md

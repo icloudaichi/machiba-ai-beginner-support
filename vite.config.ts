@@ -12,7 +12,9 @@ const { d1, r2 } = hostingConfig;
 const isCodexSeatbeltSandbox = process.env.CODEX_SANDBOX === "seatbelt";
 
 const localBindingConfig = {
+  name: "machiba-ai-beginner-guide",
   main: "./worker/index.ts",
+  compatibility_date: "2026-08-22",
   compatibility_flags: ["nodejs_compat"],
   d1_databases: d1
     ? [

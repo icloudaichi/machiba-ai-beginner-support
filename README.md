@@ -4,7 +4,7 @@ AI・GitHub・Cloudflareを初めて知る人へ向けた、公開の学習・�
 
 ## 公式URL
 
-- サポートサイト：<https://machiba-ai-beginner-guide.icloudaichi.chatgpt.site/>
+- サポートサイト：<https://machiba-ai-beginner-guide.daichi-dev.workers.dev/>
 - 公開教材リポジトリ：<https://github.com/icloudaichi/machiba-ai-beginner-support>
 - AI向けスキル：<https://raw.githubusercontent.com/icloudaichi/machiba-ai-beginner-support/main/.agents/skills/machiba-beginner-support/SKILL.md>
 
@@ -59,6 +59,13 @@ npm install
 npm run dev
 npm run lint
 npm run build
+```
+
+Cloudflareへの公開前確認と本番公開は、次のコマンドで行います。
+
+```bash
+npm run deploy:cloudflare:dry-run
+npm run deploy:cloudflare
 ```
 
 画面右上の「A4で印刷」から、各ページをA4縦で印刷またはPDF保存できます。

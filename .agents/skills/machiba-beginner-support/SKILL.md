@@ -9,7 +9,7 @@ description: 対象プロジェクトを開いたCodexまたはClaude Codeで、
 
 ## 正本
 
-- 参加者向けサイト：<https://machiba-ai-beginner-guide.icloudaichi.chatgpt.site/>
+- 参加者向けサイト：<https://machiba-ai-beginner-guide.daichi-dev.workers.dev/>
 - 公開教材リポジトリ：<https://github.com/icloudaichi/machiba-ai-beginner-support>
 - このスキルの公開版：<https://raw.githubusercontent.com/icloudaichi/machiba-ai-beginner-support/main/.agents/skills/machiba-beginner-support/SKILL.md>
 
