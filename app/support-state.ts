@@ -38,9 +38,10 @@ export type StepId =
   | "submit";
 
 export type SupportProgress = {
-  version: 7;
+  version: 8;
   displayName: string;
   nameConsent: boolean;
+  issueNameConsent: boolean;
   os: OsChoice;
   ai: AiChoice;
   starterStatus: StarterStatus;
@@ -82,9 +83,10 @@ export const stepOrder: StepId[] = [
 ];
 
 export const initialProgress: SupportProgress = {
-  version: 7,
+  version: 8,
   displayName: "",
   nameConsent: false,
+  issueNameConsent: false,
   os: "",
   ai: "",
   starterStatus: "not-ready",
@@ -130,11 +132,40 @@ export function sanitizeDisplayName(value: unknown) {
 
 export function buildParticipantPromptContext(value: unknown, confirmed = false) {
   const displayName = sanitizeDisplayName(value);
-  if (!displayName || !confirmed) {
-    return "参加者名（表示名）：未入力\n先へ進む前に、講座で呼ばれたい表示名を一度だけ質問し、本人の返答を復唱して確認してください。確認できるまでセッションIssueを開始しないでください。";
+  if (!displayName) {
+    return "相談用表示名（ニックネーム・日本語可）：未入力\nこの端末の進捗用の呼び名を先に確認してください。private Issueへの保存は別の確認が必要です。表示名を確認できるまでセッションIssueを開始しないでください。";
+  }
+  if (!confirmed) {
+    return `相談用表示名（ニックネーム・日本語可）：${displayName}\nこの呼び名はこの端末の進捗用にだけ保存済みです。private Issueへの保存はまだ了承されていません。表示名をIssue開始コマンドへ渡さず、セッションIssueを開始しないでください。`;
   }
 
-  return `参加者名（表示名）：${displayName}\nこの表示名は本人が入力し、確認済みです。セッション開始時は scripts/support-session.mjs start に --display-name "${displayName}" --confirm-display-name を渡し、同じ表示名をセッションIssueと以後の記録で使ってください。`;
+  return `相談用表示名（ニックネーム・日本語可）：${displayName}\n本人が、このニックネームをprivate Issueへ保存することを別途了承済みです。GitHubのrepo名とは別に扱ってください。セッション開始時は scripts/support-session.mjs start に --display-name "${displayName}" --confirm-display-name を渡し、同じ表示名をセッションIssueと以後の記録で使ってください。`;
+}
+
+export function canUseDisplayNameInIssue(progress: Pick<SupportProgress, "displayName" | "nameConsent" | "issueNameConsent">) {
+  return progress.nameConsent
+    && progress.issueNameConsent
+    && sanitizeDisplayName(progress.displayName).length > 0;
+}
+
+export function isDeviceDisplayNameLocked(progress: Pick<SupportProgress, "githubLogStatus" | "githubIssueNumber">) {
+  return progress.githubLogStatus === "local-queued"
+    || progress.githubLogStatus === "synced"
+    || progress.githubIssueNumber !== null;
+}
+
+export function saveDisplayNameToDevice(
+  progress: Pick<SupportProgress, "displayName" | "nameConsent" | "issueNameConsent">,
+  value: unknown,
+): Pick<SupportProgress, "displayName" | "nameConsent" | "issueNameConsent"> {
+  const displayName = sanitizeDisplayName(value);
+  if (!displayName) return { displayName: "", nameConsent: false, issueNameConsent: false };
+  const sameConfirmedName = progress.nameConsent && displayName === sanitizeDisplayName(progress.displayName);
+  return {
+    displayName,
+    nameConsent: true,
+    issueNameConsent: sameConfirmedName ? progress.issueNameConsent : false,
+  };
 }
 
 export function sanitizeSubmissionFileName(value: unknown) {
@@ -214,7 +245,7 @@ export function buildSubmissionRecordPrompt({
 
   return `提出結果を、今開いている対象アプリのprivate GitHubリポジトリにあるセッションIssueへ記録してください。公開教材リポジトリには記録しないでください。
 
-- 参加者名（表示名）：${safeDisplayName}
+- 相談用表示名：${safeDisplayName}
 - 提出ファイル名：${safeFileName}
 - Google DriveファイルURL：${safeFileUrl || "未記録（ファイル名と読み戻し確認のみ）"}
 - 実際のアップロード経路：${safeUploadRoute}
@@ -271,6 +302,10 @@ export function sanitizeProgress(value: unknown): SupportProgress {
   const ai: AiChoice = candidate.ai === "chatgpt" || candidate.ai === "claude" ? candidate.ai : "";
   const nameConsent = candidate.nameConsent === true;
   const displayName = nameConsent ? sanitizeDisplayName(candidate.displayName) : "";
+  const issueNameConsent = (candidate.version ?? 0) >= 8
+    && nameConsent
+    && displayName.length > 0
+    && candidate.issueNameConsent === true;
   const starterStatus: StarterStatus = candidate.starterStatus === "ready" ? "ready" : "not-ready";
   const repositoryStatus: RepositoryStatus = candidate.repositoryStatus === "private-ready" || candidate.repositoryStatus === "local-only"
     ? candidate.repositoryStatus
@@ -326,11 +361,24 @@ export function sanitizeProgress(value: unknown): SupportProgress {
   if ((candidate.version ?? 0) < 7 && stepOrder.indexOf(requestedStep) > stepOrder.indexOf("github-connect")) {
     currentStep = githubStatus === "connected" ? "starter-obtain" : "github-account";
   }
+  if (
+    !issueNameConsent
+    && nameConsent
+    && repositoryStatus === "private-ready"
+    && projectStatus === "ready"
+    && supportKitStatus === "ready"
+    && githubStatus === "connected"
+    && ((candidate.version ?? 0) < 8 || githubIssueNumber !== null)
+    && stepOrder.indexOf(currentStep) > stepOrder.indexOf("github-log")
+  ) {
+    currentStep = "github-log";
+  }
 
   return {
-    version: 7,
+    version: 8,
     displayName,
     nameConsent,
+    issueNameConsent,
     os,
     ai,
     starterStatus,
