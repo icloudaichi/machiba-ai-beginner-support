@@ -1,5 +1,6 @@
 export const SUPPORT_SITE_URL = "https://machiba-ai-beginner-guide.daichi-dev.workers.dev/";
 export const SUPPORT_REPOSITORY_URL = "https://github.com/icloudaichi/machiba-ai-beginner-support";
+export const STARTER_ZIP_URL = `${SUPPORT_REPOSITORY_URL}/archive/refs/heads/main.zip`;
 export const SUPPORT_SKILL_URL =
   "https://raw.githubusercontent.com/icloudaichi/machiba-ai-beginner-support/main/.agents/skills/machiba-beginner-support/SKILL.md";
 export const REPOSITORY_NAME_BASE = "machiba-ai-app";

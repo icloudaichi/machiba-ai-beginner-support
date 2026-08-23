@@ -7,6 +7,7 @@ import {
   REPOSITORY_NAME_BASE,
   REPOSITORY_NAME_EXAMPLE,
   REPOSITORY_NAME_FALLBACKS,
+  STARTER_ZIP_URL,
   SUPPORT_REPOSITORY_URL,
   SUPPORT_SITE_URL,
   SUPPORT_SKILL_URL,
@@ -30,6 +31,13 @@ test("submission folder points to the course Google Drive folder", () => {
     "https://drive.google.com/drive/folders/1sEgVfferbokBUQU440bChvVYyGk338hs",
   );
   assert.equal(COURSE_EVENT_DATE, "2026-08-23");
+});
+
+test("starter ZIP points to the latest official repository archive", () => {
+  assert.equal(
+    STARTER_ZIP_URL,
+    "https://github.com/icloudaichi/machiba-ai-beginner-support/archive/refs/heads/main.zip",
+  );
 });
 
 test("official context requires useful consultation history without raw secrets", () => {
