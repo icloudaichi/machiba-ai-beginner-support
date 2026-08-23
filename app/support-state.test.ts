@@ -5,6 +5,7 @@ import {
   buildSubmissionRecordPrompt,
   canUseDisplayNameInIssue,
   canRecordDriveIssue,
+  clearLegacySupportProgress,
   deriveDriveIssueRecordStatus,
   deriveGate,
   initialProgress,
@@ -15,9 +16,18 @@ import {
   sanitizeProgress,
   sanitizeSubmissionFileName,
   saveDisplayNameToDevice,
+  SUPPORT_PROGRESS_STORAGE_KEY,
   stepOrder,
   type SupportProgress,
 } from "./support-state.ts";
+
+test("the new course run starts fresh and removes the previous browser progress", () => {
+  const removed: string[] = [];
+  clearLegacySupportProgress({ removeItem: key => removed.push(key) });
+
+  assert.equal(SUPPORT_PROGRESS_STORAGE_KEY, "machiba-ai-beginner-support-v2");
+  assert.deepEqual(removed, ["machiba-ai-beginner-support-v1"]);
+});
 
 function progress(patch: Partial<SupportProgress>): SupportProgress {
   return { ...initialProgress, ...patch };
