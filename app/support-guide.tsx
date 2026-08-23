@@ -995,6 +995,7 @@ export default function SupportGuide({ active, onOpenDeck }: { active: boolean; 
                 <GitHubLogPill status={progress.githubLogStatus} />
               </div>
               <div className="support-hub-actions">
+                <a className="support-top-zip-link" href={STARTER_ZIP_URL}>公式スターターZIPをダウンロード <b>↓</b></a>
                 <button className="support-main-button" type="button" disabled={!participantReady} onClick={() => { setScreen("guide"); if (!hasJourneyProgress) updateProgress({ currentStep: "device" }); }}>
                   <span>{participantReady ? (hasJourneyProgress ? `${participantName}さんの続きから始める` : "接続確認を始める") : "先にこの端末で使う呼び名を入力してください"}</span><b>→</b>
                 </button>

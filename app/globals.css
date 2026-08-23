@@ -99,6 +99,8 @@ a { color: inherit; }
 .support-status-pill.status-blocked b { color: var(--red); }
 .support-hub-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 23px; }
 .support-hub-actions button { border: 1px solid #cfd7d1; border-radius: 11px; padding: 12px 18px; color: var(--green-dark); background: white; font-size: 14px; font-weight: 800; }
+.support-hub-actions .support-top-zip-link { display: flex; flex: 1 0 100%; align-items: center; justify-content: space-between; min-height: 58px; border: 2px solid var(--yellow); border-radius: 11px; padding: 13px 20px; color: var(--green-dark); background: #fff7d9; font-size: 16px; font-weight: 900; text-decoration: none; transition: transform .15s ease, box-shadow .15s ease; }
+.support-hub-actions .support-top-zip-link:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(31,54,46,.1); }
 .support-hub-actions .support-main-button { display: flex; flex: 1 0 100%; align-items: center; justify-content: space-between; min-height: 64px; padding: 14px 21px; border-color: var(--green); color: white; background: var(--green); font-size: 16px; }
 .support-main-button b { font-size: 24px; }
 .support-hub-actions .support-main-button:disabled { cursor: default; border-color: #aab5af; background: #aab5af; box-shadow: none; }
@@ -580,7 +582,7 @@ a { color: inherit; }
   .support-hero-mark span { width: 65px; height: 65px; border-radius: 16px; font-size: 17px; }
   .support-hub-main, .support-participant-card { padding: 22px; border-radius: 15px; }
   .support-section-label { font-size: 14px; }.support-status-pill small { font-size: 14px; }.support-status-pill b { font-size: 16px; }
-  .support-hub-actions button, .support-hub-actions .support-main-button { font-size: 16px; }
+  .support-hub-actions button, .support-hub-actions .support-main-button, .support-hub-actions .support-top-zip-link { font-size: 16px; }
   .support-participant-card > span { font-size: 14px; }.support-participant-card h2 { font-size: 23px; }.support-participant-card label b { font-size: 14px; }.support-participant-card input { font-size: 17px; }.support-participant-card p { font-size: 15px; }.support-participant-card > button { font-size: 14px; }
   .support-status-row { grid-template-columns: 1fr; }
   .support-status-row.compact { grid-template-columns: 1fr; max-width: none; margin-top: 14px; }
@@ -588,7 +590,7 @@ a { color: inherit; }
   .support-status-row.compact .support-status-pill > span { flex-basis: 30px; height: 30px; }
   .support-status-row.compact .support-status-pill small { display: none; }
   .support-status-row.compact .support-status-pill b { font-size: 12px; }
-  .support-hub-actions { flex-direction: column; }.support-hub-actions button { width: 100%; }
+  .support-hub-actions { flex-direction: column; }.support-hub-actions button, .support-hub-actions .support-top-zip-link { width: 100%; }
   .support-path-preview { grid-template-columns: 1fr; gap: 8px; padding: 20px; }
   .support-path-preview b { font-size: 16px; }.support-path-preview p { font-size: 14px; line-height: 1.5; }
   .support-path-preview > i { transform: rotate(90deg); text-align: center; }
