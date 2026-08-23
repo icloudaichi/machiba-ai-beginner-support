@@ -6,6 +6,7 @@ import {
   buildSubmissionRecordPrompt,
   canUseDisplayNameInIssue,
   canRecordDriveIssue,
+  clearLegacySupportProgress,
   deriveGate,
   deriveDriveIssueRecordStatus,
   initialProgress,
@@ -16,6 +17,7 @@ import {
   sanitizeProgress,
   sanitizeSubmissionFileName,
   saveDisplayNameToDevice,
+  SUPPORT_PROGRESS_STORAGE_KEY,
   stepOrder,
   type ConnectionStatus,
   type DriveIssueRecordStatus,
@@ -39,8 +41,6 @@ import {
   type PromptTarget,
   withOfficialContext,
 } from "./support-context";
-
-const STORAGE_KEY = "machiba-ai-beginner-support-v1";
 
 const stepLabels: Record<StepId, string> = {
   device: "PCと使うAI",
@@ -188,7 +188,8 @@ export default function SupportGuide({ active, onOpenDeck }: { active: boolean; 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
       try {
-        const saved = window.localStorage.getItem(STORAGE_KEY);
+        clearLegacySupportProgress(window.localStorage);
+        const saved = window.localStorage.getItem(SUPPORT_PROGRESS_STORAGE_KEY);
         if (saved) {
           const restored = sanitizeProgress(JSON.parse(saved));
           setProgress(restored);
@@ -196,7 +197,7 @@ export default function SupportGuide({ active, onOpenDeck }: { active: boolean; 
         }
       } catch {
         try {
-          window.localStorage.removeItem(STORAGE_KEY);
+          window.localStorage.removeItem(SUPPORT_PROGRESS_STORAGE_KEY);
         } catch {
           // Storage may be disabled entirely. The visible warning below is the fallback.
         }
@@ -213,7 +214,7 @@ export default function SupportGuide({ active, onOpenDeck }: { active: boolean; 
     if (!loaded) return;
     let warningTimer: number | undefined;
     try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+      window.localStorage.setItem(SUPPORT_PROGRESS_STORAGE_KEY, JSON.stringify(progress));
     } catch {
       warningTimer = window.setTimeout(() => {
         setStorageWarning("このブラウザでは進捗を保存できません。画面を閉じる前に再開カードをコピーしてください。");
@@ -368,7 +369,7 @@ export default function SupportGuide({ active, onOpenDeck }: { active: boolean; 
 
   const resetProgress = () => {
     try {
-      window.localStorage.removeItem(STORAGE_KEY);
+      window.localStorage.removeItem(SUPPORT_PROGRESS_STORAGE_KEY);
       setStorageWarning("");
     } catch {
       setStorageWarning("このブラウザでは保存記録を消せませんでした。再開カードをコピーし、ブラウザのサイトデータ設定を確認してください。");

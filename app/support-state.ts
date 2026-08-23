@@ -19,6 +19,13 @@ export type RepositoryStatus = "not-ready" | "private-ready" | "local-only";
 export type SupportKitStatus = "not-checked" | "ready" | "missing";
 export type DriveSubmissionStatus = "not-started" | "submitted";
 export type DriveIssueRecordStatus = "not-started" | "waiting" | "synced";
+export const SUPPORT_PROGRESS_STORAGE_KEY = "machiba-ai-beginner-support-v2";
+export const LEGACY_SUPPORT_PROGRESS_STORAGE_KEYS = ["machiba-ai-beginner-support-v1"] as const;
+
+export function clearLegacySupportProgress(storage: { removeItem: (key: string) => void }) {
+  for (const key of LEGACY_SUPPORT_PROGRESS_STORAGE_KEYS) storage.removeItem(key);
+}
+
 export type StepId =
   | "device"
   | "github-account"
