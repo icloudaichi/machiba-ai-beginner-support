@@ -32,6 +32,7 @@ import {
   GOOGLE_DRIVE_SUBMISSION_FOLDER_URL,
   REPOSITORY_NAME_EXAMPLE,
   REPOSITORY_NAME_FALLBACKS,
+  STARTER_ZIP_URL,
   SUPPORT_REPOSITORY_URL,
   SUPPORT_SITE_URL,
   SUPPORT_SKILL_URL,
@@ -97,7 +98,12 @@ const driveIssueRecordLabels: Record<DriveIssueRecordStatus, string> = {
 const prompts = {
   githubAccount: withOfficialContext("github-account", "AI相談室", "GitHubの個人アカウントを準備したいです。まず既存アカウントがあるかを一つだけ質問してください。作成が必要ならGitHub公式ページだけを使い、一度に一操作ずつ案内してください。パスワード、メールの確認コード、秘密の文字はチャットへ貼らせないでください。メール認証が終わり、GitHubへログインできたら、その事実だけを確認してください。"),
   githubConnect: withOfficialContext("github-connect", "制作スレッド", "このPCとGitHubの接続状況を確認してください。最初にGitHub CLIが既にあるかを確認し、未導入なら勝手にインストールせず必要な作業を一つだけ説明してください。CLIがある場合は、OSに合う方法で gh auth status の標準出力と標準エラーを抑制し、終了ステータスだけを確認してください。コマンド出力、GitHubユーザー名、メール、組織名などのアカウント情報はチャットへ表示せず、『接続済み／未接続』だけを報告してください。インストールやブラウザ認証を始める前に私の確認を待ち、パスワード、認証コード、アクセストークンはチャットへ貼らせないでください。接続後も同じ終了ステータスだけの方法で再確認してください。"),
-  starterObtain: withOfficialContext("starter-obtain", "AI相談室", "講師から配布されたスターターZIPを、このPCの後から見つけられる場所へ保存して展開したいです。最初にMacかWindowsかを確認し、一度に一操作だけ案内してください。ZIPのまま開発を始めず、展開後のフォルダが一つできたことを確認してください。配布物が見つからない場合は推測で別のファイルを取得せず、講師へ確認するよう案内してください。まだGit初期化、GitHubリポジトリ作成、Issue作成、インストールは行わないでください。ファイルの絶対パスやPCのユーザー名はチャットへ表示せず、『スターターを展開できた／まだ』だけを報告してください。"),
+  starterObtain: withOfficialContext("starter-obtain", "AI相談室", `次の公式URLからスターターZIPを、このPCの後から見つけられる場所へ保存して展開したいです。
+
+スターターZIP：
+${STARTER_ZIP_URL}
+
+最初にMacかWindowsかを確認し、一度に一操作だけ案内してください。このURL以外から別のファイルを取得しないでください。ZIPのまま開発を始めず、展開後のフォルダが一つでき、README.mdとscripts/support-session.mjsがあることを確認してください。まだGit初期化、GitHubリポジトリ作成、Issue作成、インストールは行わないでください。ファイルの絶対パスやPCのユーザー名はチャットへ表示せず、『スターターを展開できた／まだ』だけを報告してください。`),
   repositorySetup: withOfficialContext("repository-setup", "制作スレッド", `展開済みスターターを、参加者自身のprivate GitHubリポジトリとして準備してください。最初に、現在地が展開したスターターのルートであり、まだセッションIssueを開始していないことを確認してください。相談用表示名は日本語も使えるニックネームですが、repo名には使いません。repo名は本名、ニックネーム、メールアドレスを含まない英小文字・数字・ハイフンだけの技術名にします。まず「${REPOSITORY_NAME_EXAMPLE}」を候補として一つ提示し、既に存在すると確認できた場合だけ「${REPOSITORY_NAME_FALLBACKS[0]}」「${REPOSITORY_NAME_FALLBACKS[1]}」の順で増やしてください。候補名、Privateで作ること、変更される内容を説明し、私の確認を待ってください。了承後、git init（main）、最初のcommit、privateリポジトリ作成、origin設定、pushを一操作ずつ案内してください。GitHub上のリポジトリ作成・pushは状態を変えるため、実行前に対象、privateであること、影響を説明して私の確認を待ってください。publicリポジトリは作らないでください。完了時は、承認したrepo名と一致すること、Gitリポジトリであること、originがあること、GitHub側がprivateであること、現在のcommitがpush済みであることだけを報告してください。remote URL、ユーザー名、メール、ローカルパス、生のコマンド出力、秘密情報は表示しないでください。まだIssueは作成しないでください。`),
   projectFolder: withOfficialContext("project-folder", "AI相談室", "先ほどprivate GitHubリポジトリとして準備した、展開済みスターターのフォルダを制作AIで開きたいです。ChatGPT / Codexなら対象フォルダをプロジェクトとして開く方法を、Claude / Claude Codeなら対象フォルダで制作を始める方法を、一度に一操作だけ案内してください。ZIP、空のフォルダ、公開教材リポジトリではなく、今作った参加者自身のprivateアプリ用リポジトリを開けたことを確認してください。開いた後は、Gitリポジトリでoriginが設定されていることを読み取り確認し、その事実だけを報告してください。まだIssue作成、ファイル変更、インストール、公開は行わないでください。"),
   supportKit: withOfficialContext("support-kit", "制作スレッド", "今開いている参加者自身のprivateアプリ用リポジトリで、相談記録用サポート機能が同梱されているか読み取り確認してください。最初にGitリポジトリでoriginがあることを確認し、その後 scripts/support-session.mjs が存在するか確認してください。存在する場合だけ node scripts/support-session.mjs --help を実行し、終了コード0とstart・status・consultation・artifactの入口が表示されることを確認してください。まだstartやIssue作成は実行しないでください。スクリプトがない、helpが失敗する、または現在地がGitリポジトリでない場合は、代わりのコマンドを推測せず『サポート機能を確認できません』と報告してください。生の出力、絶対パス、アカウント情報、秘密情報は表示しないでください。"),
@@ -470,7 +476,9 @@ export default function SupportGuide({ active, onOpenDeck }: { active: boolean; 
           <>
             <p className="support-step-kicker">制作準備 1 / 4</p>
             <h2>スターターを受け取り、ZIPを展開します</h2>
-            <p className="support-step-lead">講師から渡されたスターターだけを使います。この段階ではIssueもインストールも始めません。</p>
+            <p className="support-step-lead">公式リポジトリの最新版をZIPで保存します。この段階ではIssueもインストールも始めません。</p>
+            <a className="support-starter-link" href={STARTER_ZIP_URL}>公式スターターZIPをダウンロード</a>
+            <div className="support-expected"><b>保存した後</b><p>ZIPを展開すると、README.mdとscriptsフォルダが入った普通のフォルダが一つできます。</p></div>
             <PromptBox id="starter-obtain" text={prompts.starterObtain} target="AI相談室" copiedId={copiedId} onCopy={copyText} />
             <div className="support-action-list">
               <button className="primary" type="button" onClick={() => completeAndGo("starter-obtain", "repository-setup", { starterStatus: "ready" })}>スターターを展開できました</button>
