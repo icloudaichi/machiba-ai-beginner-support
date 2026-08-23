@@ -1,6 +1,6 @@
 interface:
   display_name: "街場のAI屋さん 初心者サポート"
   short_description: "相談履歴・接続・成果物提出を一操作ずつ安全に伴走する"
-  default_prompt: "$machiba-beginner-support を使って、このprivate repoの初回pushと同梱ツールを確認してから相談Issueを始め、その後にCloudflare接続と成果物提出を一操作ずつ案内してください。"
+  default_prompt: "$machiba-beginner-support を使って、まずPCとGitHubの接続を確認し、非個人のASCII repo名と初回push、同梱ツールを確認してください。私が選んだニックネームの保存了承後に相談Issueを始め、その後にCloudflare接続と成果物提出を一操作ずつ案内してください。"
 policy:
   allow_implicit_invocation: true

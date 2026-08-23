@@ -3,15 +3,18 @@ import assert from "node:assert/strict";
 import {
   buildParticipantPromptContext,
   buildSubmissionRecordPrompt,
+  canUseDisplayNameInIssue,
   canRecordDriveIssue,
   deriveDriveIssueRecordStatus,
   deriveGate,
   initialProgress,
+  isDeviceDisplayNameLocked,
   nextConnectionStep,
   sanitizeDisplayName,
   sanitizeDriveFileUrl,
   sanitizeProgress,
   sanitizeSubmissionFileName,
+  saveDisplayNameToDevice,
   stepOrder,
   type SupportProgress,
 } from "./support-state.ts";
@@ -106,9 +109,10 @@ test("legacy blocked state migrates according to the completed stage", () => {
 
 test("sanitization keeps the confirmed display name and drops paths or account data", () => {
   const sanitized = sanitizeProgress({
-    version: 7,
+    version: 8,
     displayName: "  だいち\nさん  ",
     nameConsent: true,
+    issueNameConsent: true,
     os: "mac",
     ai: "chatgpt",
     starterStatus: "ready",
@@ -127,9 +131,10 @@ test("sanitization keeps the confirmed display name and drops paths or account d
   });
 
   assert.deepEqual(sanitized.completedSteps, ["device", "project-folder"]);
-  assert.equal(sanitized.version, 7);
+  assert.equal(sanitized.version, 8);
   assert.equal(sanitized.displayName, "だいちさん");
   assert.equal(sanitized.nameConsent, true);
+  assert.equal(sanitized.issueNameConsent, true);
   assert.equal(sanitized.setupGate, "ready");
   assert.equal("projectPath" in sanitized, false);
   assert.equal("email" in sanitized, false);
@@ -137,8 +142,9 @@ test("sanitization keeps the confirmed display name and drops paths or account d
   assert.equal(sanitized.githubIssueNumber, 42);
 });
 
-test("display names are normalized and bounded for progress cards", () => {
+test("Japanese display nicknames are normalized and bounded for progress cards", () => {
   assert.equal(sanitizeDisplayName("  和佐　大輔  "), "和佐 大輔");
+  assert.equal(sanitizeDisplayName("まちばAI太郎"), "まちばAI太郎");
   assert.equal(sanitizeDisplayName("下山\u0000さん"), "下山さん");
   assert.equal(sanitizeDisplayName("Daichi <script>"), "Daichi script");
   assert.equal(sanitizeDisplayName("あ".repeat(50)), "あ".repeat(40));
@@ -147,15 +153,43 @@ test("display names are normalized and bounded for progress cards", () => {
 
 test("participant prompt context carries the confirmed name into session start", () => {
   const named = buildParticipantPromptContext("  だいち  ", true);
-  assert.match(named, /参加者名（表示名）：だいち/u);
+  assert.match(named, /相談用表示名（ニックネーム・日本語可）：だいち/u);
+  assert.match(named, /private Issueへ保存することを別途了承済み/u);
+  assert.match(named, /GitHubのrepo名とは別/u);
   assert.match(named, /--display-name "だいち" --confirm-display-name/u);
 
   const unnamed = buildParticipantPromptContext("", false);
-  assert.match(unnamed, /一度だけ質問/u);
+  assert.match(unnamed, /この端末の進捗用の呼び名/u);
+  assert.match(unnamed, /private Issueへの保存は別の確認/u);
   assert.match(unnamed, /確認できるまでセッションIssueを開始しない/u);
 
   const unconfirmed = buildParticipantPromptContext("だいち", false);
-  assert.match(unconfirmed, /確認できるまでセッションIssueを開始しない/u);
+  assert.match(unconfirmed, /この端末の進捗用にだけ保存済み/u);
+  assert.match(unconfirmed, /private Issueへの保存はまだ了承されていません/u);
+  assert.doesNotMatch(unconfirmed, /--display-name/u);
+});
+
+test("device name consent and private Issue name consent remain separate", () => {
+  const firstSave = saveDisplayNameToDevice(initialProgress, "  だいち  ");
+  assert.deepEqual(firstSave, {
+    displayName: "だいち",
+    nameConsent: true,
+    issueNameConsent: false,
+  });
+  assert.equal(canUseDisplayNameInIssue(firstSave), false);
+
+  const issueApproved = { ...firstSave, issueNameConsent: true };
+  assert.equal(canUseDisplayNameInIssue(issueApproved), true);
+  assert.equal(saveDisplayNameToDevice(issueApproved, "だいち").issueNameConsent, true);
+  assert.equal(saveDisplayNameToDevice(issueApproved, "だいち2").issueNameConsent, false);
+});
+
+test("the device nickname is locked after an Issue is created or synced", () => {
+  assert.equal(isDeviceDisplayNameLocked(progress({ githubLogStatus: "not-started", githubIssueNumber: null })), false);
+  assert.equal(isDeviceDisplayNameLocked(progress({ githubLogStatus: "local-queued", githubIssueNumber: null })), true);
+  assert.equal(isDeviceDisplayNameLocked(progress({ githubLogStatus: "blocked", githubIssueNumber: null })), false);
+  assert.equal(isDeviceDisplayNameLocked(progress({ githubLogStatus: "synced", githubIssueNumber: null })), true);
+  assert.equal(isDeviceDisplayNameLocked(progress({ githubLogStatus: "not-started", githubIssueNumber: 12 })), true);
 });
 
 test("submission helpers accept only a ZIP name and a Google Drive file URL", () => {
@@ -177,7 +211,7 @@ test("submission helpers accept only a ZIP name and a Google Drive file URL", ()
     fileUrl: "https://drive.google.com/file/d/1Abcdefghij/view",
     uploadRoute: "browser",
   });
-  assert.match(prompt, /参加者名（表示名）：だいち/u);
+  assert.match(prompt, /相談用表示名：だいち/u);
   assert.match(prompt, /2026-08-23_だいち_成果物\.zip/u);
   assert.match(prompt, /ファイル一覧またはファイルメタデータ/u);
   assert.match(prompt, /private GitHubリポジトリ/u);
@@ -226,9 +260,12 @@ test("legacy progress returns to the starter handoff before Issue logging", () =
   assert.equal(migrated.setupGate, "pending");
 });
 
-test("version 7 progress keeps a fully prepared current step", () => {
+test("version 8 progress keeps a fully prepared current step", () => {
   const migrated = sanitizeProgress({
-    version: 7,
+    version: 8,
+    displayName: "だいち",
+    nameConsent: true,
+    issueNameConsent: true,
     os: "windows",
     ai: "claude",
     starterStatus: "ready",
@@ -243,11 +280,55 @@ test("version 7 progress keeps a fully prepared current step", () => {
     githubIssueNumber: 18,
   });
 
-  assert.equal(migrated.version, 7);
-  assert.equal(migrated.displayName, "");
-  assert.equal(migrated.nameConsent, false);
+  assert.equal(migrated.version, 8);
+  assert.equal(migrated.displayName, "だいち");
+  assert.equal(migrated.nameConsent, true);
+  assert.equal(migrated.issueNameConsent, true);
   assert.equal(migrated.currentStep, "idea");
   assert.equal(migrated.githubIssueNumber, 18);
+});
+
+test("version 7 progress fails closed and returns to Issue name consent", () => {
+  const migrated = sanitizeProgress({
+    version: 7,
+    displayName: "だいち",
+    nameConsent: true,
+    issueNameConsent: true,
+    starterStatus: "ready",
+    repositoryStatus: "private-ready",
+    projectStatus: "ready",
+    supportKitStatus: "ready",
+    githubStatus: "connected",
+    githubLogStatus: "synced",
+    githubIssueNumber: 18,
+    currentStep: "idea",
+  });
+
+  assert.equal(migrated.version, 8);
+  assert.equal(migrated.displayName, "だいち");
+  assert.equal(migrated.nameConsent, true);
+  assert.equal(migrated.issueNameConsent, false);
+  assert.equal(migrated.currentStep, "github-log");
+});
+
+test("an existing Issue returns to nickname consent after the device name changes", () => {
+  const migrated = sanitizeProgress({
+    version: 8,
+    displayName: "新しい呼び名",
+    nameConsent: true,
+    issueNameConsent: false,
+    starterStatus: "ready",
+    repositoryStatus: "private-ready",
+    projectStatus: "ready",
+    supportKitStatus: "ready",
+    githubStatus: "connected",
+    githubLogStatus: "synced",
+    githubIssueNumber: 18,
+    currentStep: "idea",
+  });
+
+  assert.equal(migrated.issueNameConsent, false);
+  assert.equal(migrated.currentStep, "github-log");
 });
 
 test("submit is the final step and old publishing progress restarts at safe setup", () => {
@@ -259,7 +340,7 @@ test("submit is the final step and old publishing progress restarts at safe setu
     completedSteps: ["device", "project-folder", "publish"],
   });
 
-  assert.equal(migrated.version, 7);
+  assert.equal(migrated.version, 8);
   assert.equal(migrated.currentStep, "github-account");
   assert.ok(migrated.completedSteps.includes("publish"));
 });
@@ -272,9 +353,10 @@ test("unconfirmed names are not retained in persisted progress", () => {
     currentStep: "device",
   });
 
-  assert.equal(migrated.version, 7);
+  assert.equal(migrated.version, 8);
   assert.equal(migrated.displayName, "");
   assert.equal(migrated.nameConsent, false);
+  assert.equal(migrated.issueNameConsent, false);
 });
 
 test("Drive submission and private Issue recording remain separate", () => {
@@ -290,7 +372,7 @@ test("Drive submission and private Issue recording remain separate", () => {
 
 test("Drive progress stores a safe filename but never stores a Drive URL", () => {
   const waiting = sanitizeProgress({
-    version: 7,
+    version: 8,
     driveSubmissionStatus: "submitted",
     driveIssueRecordStatus: "synced",
     driveSubmissionFileName: "2026-08-23_だいち_成果物.zip",

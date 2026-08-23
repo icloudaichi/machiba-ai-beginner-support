@@ -4,15 +4,18 @@ import { useEffect, useState } from "react";
 import {
   buildParticipantPromptContext,
   buildSubmissionRecordPrompt,
+  canUseDisplayNameInIssue,
   canRecordDriveIssue,
   deriveGate,
   deriveDriveIssueRecordStatus,
   initialProgress,
+  isDeviceDisplayNameLocked,
   nextConnectionStep,
   sanitizeDisplayName,
   sanitizeDriveFileUrl,
   sanitizeProgress,
   sanitizeSubmissionFileName,
+  saveDisplayNameToDevice,
   stepOrder,
   type ConnectionStatus,
   type DriveIssueRecordStatus,
@@ -27,6 +30,8 @@ import {
   COURSE_EVENT_DATE,
   GOOGLE_DRIVE_SUBMISSION_FOLDER_ID,
   GOOGLE_DRIVE_SUBMISSION_FOLDER_URL,
+  REPOSITORY_NAME_EXAMPLE,
+  REPOSITORY_NAME_FALLBACKS,
   SUPPORT_REPOSITORY_URL,
   SUPPORT_SITE_URL,
   SUPPORT_SKILL_URL,
@@ -93,7 +98,7 @@ const prompts = {
   githubAccount: withOfficialContext("github-account", "AI相談室", "GitHubの個人アカウントを準備したいです。まず既存アカウントがあるかを一つだけ質問してください。作成が必要ならGitHub公式ページだけを使い、一度に一操作ずつ案内してください。パスワード、メールの確認コード、秘密の文字はチャットへ貼らせないでください。メール認証が終わり、GitHubへログインできたら、その事実だけを確認してください。"),
   githubConnect: withOfficialContext("github-connect", "制作スレッド", "このPCとGitHubの接続状況を確認してください。最初にGitHub CLIが既にあるかを確認し、未導入なら勝手にインストールせず必要な作業を一つだけ説明してください。CLIがある場合は、OSに合う方法で gh auth status の標準出力と標準エラーを抑制し、終了ステータスだけを確認してください。コマンド出力、GitHubユーザー名、メール、組織名などのアカウント情報はチャットへ表示せず、『接続済み／未接続』だけを報告してください。インストールやブラウザ認証を始める前に私の確認を待ち、パスワード、認証コード、アクセストークンはチャットへ貼らせないでください。接続後も同じ終了ステータスだけの方法で再確認してください。"),
   starterObtain: withOfficialContext("starter-obtain", "AI相談室", "講師から配布されたスターターZIPを、このPCの後から見つけられる場所へ保存して展開したいです。最初にMacかWindowsかを確認し、一度に一操作だけ案内してください。ZIPのまま開発を始めず、展開後のフォルダが一つできたことを確認してください。配布物が見つからない場合は推測で別のファイルを取得せず、講師へ確認するよう案内してください。まだGit初期化、GitHubリポジトリ作成、Issue作成、インストールは行わないでください。ファイルの絶対パスやPCのユーザー名はチャットへ表示せず、『スターターを展開できた／まだ』だけを報告してください。"),
-  repositorySetup: withOfficialContext("repository-setup", "制作スレッド", "展開済みスターターを、参加者自身のprivate GitHubリポジトリとして準備してください。最初に、現在地が展開したスターターのルートであり、まだセッションIssueを開始していないことを確認してください。Git状態、origin、GitHub上の公開範囲を安全に確認し、不足している場合だけ、git init（main）、最初のcommit、privateリポジトリ作成、origin設定、pushを一操作ずつ案内してください。GitHub上のリポジトリ作成・pushは状態を変えるため、実行前に対象、privateであること、影響を説明して私の確認を待ってください。publicリポジトリは作らないでください。完了時は、Gitリポジトリであること、originがあること、GitHub側がprivateであること、現在のcommitがpush済みであることだけを報告してください。リポジトリ名、ユーザー名、URL、生のコマンド出力、秘密情報は表示しないでください。まだIssueは作成しないでください。"),
+  repositorySetup: withOfficialContext("repository-setup", "制作スレッド", `展開済みスターターを、参加者自身のprivate GitHubリポジトリとして準備してください。最初に、現在地が展開したスターターのルートであり、まだセッションIssueを開始していないことを確認してください。相談用表示名は日本語も使えるニックネームですが、repo名には使いません。repo名は本名、ニックネーム、メールアドレスを含まない英小文字・数字・ハイフンだけの技術名にします。まず「${REPOSITORY_NAME_EXAMPLE}」を候補として一つ提示し、既に存在すると確認できた場合だけ「${REPOSITORY_NAME_FALLBACKS[0]}」「${REPOSITORY_NAME_FALLBACKS[1]}」の順で増やしてください。候補名、Privateで作ること、変更される内容を説明し、私の確認を待ってください。了承後、git init（main）、最初のcommit、privateリポジトリ作成、origin設定、pushを一操作ずつ案内してください。GitHub上のリポジトリ作成・pushは状態を変えるため、実行前に対象、privateであること、影響を説明して私の確認を待ってください。publicリポジトリは作らないでください。完了時は、承認したrepo名と一致すること、Gitリポジトリであること、originがあること、GitHub側がprivateであること、現在のcommitがpush済みであることだけを報告してください。remote URL、ユーザー名、メール、ローカルパス、生のコマンド出力、秘密情報は表示しないでください。まだIssueは作成しないでください。`),
   projectFolder: withOfficialContext("project-folder", "AI相談室", "先ほどprivate GitHubリポジトリとして準備した、展開済みスターターのフォルダを制作AIで開きたいです。ChatGPT / Codexなら対象フォルダをプロジェクトとして開く方法を、Claude / Claude Codeなら対象フォルダで制作を始める方法を、一度に一操作だけ案内してください。ZIP、空のフォルダ、公開教材リポジトリではなく、今作った参加者自身のprivateアプリ用リポジトリを開けたことを確認してください。開いた後は、Gitリポジトリでoriginが設定されていることを読み取り確認し、その事実だけを報告してください。まだIssue作成、ファイル変更、インストール、公開は行わないでください。"),
   supportKit: withOfficialContext("support-kit", "制作スレッド", "今開いている参加者自身のprivateアプリ用リポジトリで、相談記録用サポート機能が同梱されているか読み取り確認してください。最初にGitリポジトリでoriginがあることを確認し、その後 scripts/support-session.mjs が存在するか確認してください。存在する場合だけ node scripts/support-session.mjs --help を実行し、終了コード0とstart・status・consultation・artifactの入口が表示されることを確認してください。まだstartやIssue作成は実行しないでください。スクリプトがない、helpが失敗する、または現在地がGitリポジトリでない場合は、代わりのコマンドを推測せず『サポート機能を確認できません』と報告してください。生の出力、絶対パス、アカウント情報、秘密情報は表示しないでください。"),
   sessionStart: withOfficialContext("github-log", "制作スレッド", "この制作スレッドで行う相談と作業を、今開いている参加者自身の非公開アプリ用リポジトリのGitHub Issueへ自動記録してください。最初に、1. 今いる場所がGitリポジトリ、2. origin設定済み、3. GitHub側がprivate、4. 現在のcommitがpush済み、5. scripts/support-session.mjsの--helpが成功済み、の5点を読み取り確認してください。一つでも確認できなければIssueを作らず、不足している一つだけを報告してください。公開教材リポジトリ machiba-ai-beginner-support へ参加者の相談ログを書かないでください。この依頼は、このセッションに限り、構造化した作業記録のIssue作成・コメント・再読み取りと、私がセッション終了を依頼した後のIssueクローズを許可します。コードのmerge、Cloudflare公開、外部送信の許可ではありません。1つのアプリ用リポジトリでは、同時に進めるサポートセッションを1つにしてください。まず status を確認し、未開始なら start を使ってください。記録は会話のまとまりごとに『相談内容』『試したこと』『うまくいかなかったこと』『解決方法または未解決の現在地』『今回の学び』『次にする一つ』へ整理し、会話全文を貼り付けず、書いた内容を再読み取りしてください。パスワード、認証コード、トークン、秘密鍵、個人情報、ファイルの絶対パス、生のコマンド出力は記録しないでください。成功したら『Issueへ同期済み』とIssue番号だけ、GitHubへ書けない場合は『PC内で同期待ち』、安全上止めた場合は『記録を保留』と報告してください。"),
@@ -218,6 +223,8 @@ export default function SupportGuide({ active, onOpenDeck }: { active: boolean; 
   const participantReady = participantName.length > 0
     && progress.nameConsent
     && safeDisplayNameDraft === participantName;
+  const issueNameReady = canUseDisplayNameInIssue(progress);
+  const displayNameLocked = isDeviceDisplayNameLocked(progress);
   const hasJourneyProgress = completedCount > 0
     || progress.os !== ""
     || progress.starterStatus === "ready"
@@ -229,7 +236,7 @@ export default function SupportGuide({ active, onOpenDeck }: { active: boolean; 
     || progress.githubLogStatus !== "not-started"
     || progress.driveSubmissionStatus === "submitted";
   const hasProgress = participantReady || hasJourneyProgress;
-  const participantPromptContext = buildParticipantPromptContext(participantName, progress.nameConsent);
+  const participantPromptContext = buildParticipantPromptContext(participantName, progress.issueNameConsent);
   const safeSubmissionDisplayName = sanitizeDisplayName(submissionDisplayName);
   const recommendedSubmissionFileName = safeSubmissionDisplayName
     ? `${COURSE_EVENT_DATE}_${safeSubmissionDisplayName}_成果物.zip`
@@ -242,9 +249,9 @@ export default function SupportGuide({ active, onOpenDeck }: { active: boolean; 
     && safeSubmissionFileName.toLowerCase().endsWith(".zip")
     && submissionFileUrlIsValid
     && submissionVerified;
-  const driveIssueCanSync = canRecordDriveIssue(progress.githubLogStatus, progress.githubIssueNumber);
-  const consultationIssueCanSync = canRecordDriveIssue(progress.githubLogStatus, progress.githubIssueNumber);
-  const sessionStartPrompt = `${prompts.sessionStart}\n\n${participantPromptContext}`;
+  const driveIssueCanSync = issueNameReady && canRecordDriveIssue(progress.githubLogStatus, progress.githubIssueNumber);
+  const consultationIssueCanSync = issueNameReady && canRecordDriveIssue(progress.githubLogStatus, progress.githubIssueNumber);
+  const sessionStartPrompt = issueNameReady ? `${prompts.sessionStart}\n\n${participantPromptContext}` : "";
   const ideaPrompt = `${consultationIssueCanSync ? prompts.idea : prompts.ideaLocal}\n\n${participantPromptContext}`;
   const consultationRecordPrompt = `${prompts.consultationRecord}\n\n${participantPromptContext}`;
   const starterPrompt = consultationIssueCanSync ? prompts.starter : prompts.starterLocal;
@@ -324,7 +331,8 @@ export default function SupportGuide({ active, onOpenDeck }: { active: boolean; 
     return `## 再開カード
 - 参加者向けガイド：${SUPPORT_SITE_URL}
 - サポート手順の正本：${SUPPORT_REPOSITORY_URL}
-- 参加者名：${participantName || "未入力"}
+- この端末の進捗用の呼び名：${participantName || "未入力"}
+- private Issueへのニックネーム保存：${progress.issueNameConsent ? "了承済み" : "未了承"}
 - 今日の目的：はじめてのアプリづくりを続ける
 - PC・OS：${osLabel}
 - 使用中のAI：${aiLabel}
@@ -484,15 +492,15 @@ export default function SupportGuide({ active, onOpenDeck }: { active: boolean; 
         return (
           <>
             <p className="support-step-kicker">制作準備 2 / 4</p>
-            <h2>private GitHubリポジトリを作ります</h2>
-            <p className="support-step-lead">Git初期化、最初のcommit、origin設定、pushまでを確認します。publicのまま先へ進みません。</p>
+            <h2>個人情報を入れない名前でprivate repoを作ります</h2>
+            <p className="support-step-lead">相談用表示名は日本語で構いません。repo名は別に、<code>{REPOSITORY_NAME_EXAMPLE}</code>のような英数字の技術名を使い、Git初期化、最初のcommit、origin設定、pushまで確認します。</p>
             {progress.githubStatus === "connected" ? (
               <PromptBox id="repository-setup" text={prompts.repositorySetup} target="制作スレッド" copiedId={copiedId} onCopy={copyText} />
             ) : (
               <div className="support-fallback-panel compact"><b>GitHub接続は保留中</b><p>今日は展開したスターターをローカルで開けます。Issue記録はprivateリポジトリをpushできてから始めます。</p></div>
             )}
             <div className="support-action-list">
-              <button className="primary" type="button" disabled={progress.githubStatus !== "connected"} onClick={() => completeAndGo("repository-setup", "project-folder", { repositoryStatus: "private-ready" })}>private・origin・pushを確認できました</button>
+              <button className="primary" type="button" disabled={progress.githubStatus !== "connected"} onClick={() => completeAndGo("repository-setup", "project-folder", { repositoryStatus: "private-ready" })}>repo名・private・origin・pushを確認できました</button>
               <button className="quiet" type="button" onClick={() => completeAndGo("repository-setup", "project-folder", { repositoryStatus: "local-only", githubLogStatus: "blocked" })}>今日はローカルだけで続けます</button>
             </div>
           </>
@@ -539,6 +547,32 @@ export default function SupportGuide({ active, onOpenDeck }: { active: boolean; 
               <div className="support-action-list">
                 <button className="primary" type="button" onClick={() => completeAndGo("github-log", "cloudflare-account", { githubLogStatus: "blocked" })}>Issue記録を保留して次へ</button>
                 <button type="button" onClick={() => updateProgress({ currentStep: "repository-setup" })}>privateリポジトリの準備へ戻る</button>
+              </div>
+            </>
+          );
+        }
+
+        if (!participantName || !progress.nameConsent) {
+          return (
+            <>
+              <p className="support-step-kicker warning">呼び名を確認してください</p>
+              <h2>この端末の進捗用の呼び名が必要です</h2>
+              <p className="support-step-lead">初期画面で呼び名をこの端末へ保存してから、private Issueへの保存を別に確認します。まだIssueは作成しません。</p>
+              <div className="support-action-list"><button className="primary" type="button" onClick={() => setScreen("hub")}>初期画面で呼び名を確認する</button></div>
+            </>
+          );
+        }
+
+        if (!issueNameReady) {
+          return (
+            <>
+              <p className="support-step-kicker">private Issueへの保存確認</p>
+              <h2>「{participantName}」を相談Issueへ保存してよいですか？</h2>
+              <p className="support-step-lead">このニックネームは、参加者自身のprivateリポジトリに作るIssueのタイトルと本文へ入り、そのリポジトリへ招待したcollaboratorにも見えます。公開教材リポジトリには保存しません。</p>
+              <div className="support-expected"><b>この確認で許可すること</b><p>このニックネームをprivate Issueへ保存することだけです。コード変更、公開、外部送信はまだ許可しません。</p></div>
+              <div className="support-action-list">
+                <button className="primary" type="button" onClick={() => updateProgress({ issueNameConsent: true })}>このニックネームをprivate Issueへ保存してよい</button>
+                <button type="button" onClick={() => setScreen("hub")}>呼び名を変更する</button>
               </div>
             </>
           );
@@ -935,7 +969,7 @@ export default function SupportGuide({ active, onOpenDeck }: { active: boolean; 
             <div>
               <p className="support-overline">MACHIBA AI · PARTICIPANT SUPPORT</p>
               <h1>まず、<em>つながっているか</em>を<br />一つずつ確認しよう。</h1>
-              <p>GitHub接続後、スターターをprivateリポジトリにして制作AIで開きます。準備がそろってから、相談内容・試したこと・失敗・解決方法・学び・次の一手をAIがセッションIssueへ記録します。</p>
+              <p>GitHub接続後、スターターをprivateリポジトリにして制作AIで開きます。準備がそろった後、ニックネームをprivate Issueへ保存してよいか別に確認してから、相談内容・失敗・解決方法・学びを記録します。</p>
             </div>
             <div className="support-hero-mark" aria-hidden="true"><span>GH</span><i>＋</i><span>CF</span></div>
           </div>
@@ -950,7 +984,7 @@ export default function SupportGuide({ active, onOpenDeck }: { active: boolean; 
               </div>
               <div className="support-hub-actions">
                 <button className="support-main-button" type="button" disabled={!participantReady} onClick={() => { setScreen("guide"); if (!hasJourneyProgress) updateProgress({ currentStep: "device" }); }}>
-                  <span>{participantReady ? (hasJourneyProgress ? `${participantName}さんの続きから始める` : "接続確認を始める") : "先にお名前を入力してください"}</span><b>→</b>
+                  <span>{participantReady ? (hasJourneyProgress ? `${participantName}さんの続きから始める` : "接続確認を始める") : "先にこの端末で使う呼び名を入力してください"}</span><b>→</b>
                 </button>
                 {hasJourneyProgress && <button type="button" onClick={() => { updateProgress({ currentStep: "device" }); setScreen("guide"); }}>最初から見直す</button>}
                 <button type="button" onClick={onOpenDeck}>A4教材を読む</button>
@@ -959,10 +993,10 @@ export default function SupportGuide({ active, onOpenDeck }: { active: boolean; 
 
             <aside className="support-participant-card">
               <span>参加者の進捗</span>
-              <h2>{participantName ? `${participantName}さん` : "お名前を入力してください"}</h2>
-              <p className="support-name-storage-note">入力中の名前はまだ保存されません。下の確認ボタンを押すと、このブラウザの進捗と、後で作る参加者自身のprivate Issueに使われます。</p>
+              <h2>{participantName ? `${participantName}さん` : "この端末で使う呼び名を入力してください"}</h2>
+              <p className="support-name-storage-note">入力中の呼び名はまだ保存されません。下のボタンを押すと、このブラウザの進捗表示だけに保存されます。この時点ではprivate Issueへ保存しません。</p>
               <label>
-                <b>この講座で呼ばれる名前（ニックネーム可）</b>
+                <b>この端末の進捗用の呼び名（ニックネーム・日本語可）</b>
                 <input
                   type="text"
                   autoComplete="nickname"
@@ -970,16 +1004,26 @@ export default function SupportGuide({ active, onOpenDeck }: { active: boolean; 
                   value={displayNameDraft}
                   onChange={event => setDisplayNameDraft(event.target.value)}
                   placeholder="例：だいち"
-                  aria-label="参加者の表示名"
+                  aria-label="この端末の進捗用の呼び名"
+                  disabled={displayNameLocked}
                 />
               </label>
+              {displayNameLocked && <p className="support-name-storage-note">Issue開始後のニックネームはこの画面では変更しません。次回使う名前を変えたい場合は、AI相談室で相談してください。既存Issueは自動で改名せず、新しいIssueも自動作成しません。</p>}
               <button
                 className="support-confirm-name"
                 type="button"
-                disabled={!safeDisplayNameDraft}
-                onClick={() => updateProgress({ displayName: safeDisplayNameDraft, nameConsent: true })}
-              >{participantReady && safeDisplayNameDraft === participantName ? "この名前は確認済みです" : "保存先を確認し、この名前で進む"}</button>
-              <p>名前、現在のSTEP、接続状態、Issue番号をまとめ、講師と同じ現在地を確認できるようにします。</p>
+                disabled={displayNameLocked || !safeDisplayNameDraft}
+                onClick={() => {
+                  const namePatch = saveDisplayNameToDevice(progress, safeDisplayNameDraft);
+                  const returnToIssueConsent = namePatch.displayName !== participantName
+                    && progress.githubIssueNumber !== null;
+                  updateProgress({
+                    ...namePatch,
+                    ...(returnToIssueConsent ? { currentStep: "github-log" as const } : {}),
+                  });
+                }}
+              >{displayNameLocked ? "Issue開始後は変更できません" : participantReady && safeDisplayNameDraft === participantName ? "この端末に保存済みです" : "この端末の進捗用に保存する"}</button>
+              <p>呼び名、現在のSTEP、接続状態、Issue番号をこの端末でまとめます。private Issueへの保存は、準備完了後に改めて確認します。</p>
               <div className="support-personal-progress">
                 <div><span>現在地</span><b>{stepLabels[progress.currentStep]}</b></div>
                 <div><span>完了</span><b>{completedCount} / {stepOrder.length}</b></div>

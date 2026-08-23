@@ -5,15 +5,17 @@
 ## 全体像
 
 ```text
+GitHubアカウントとPC接続を確認
+  ↓
 スターターを取得
   ↓
-参加者自身のprivate repoを作成し、Git初期化・main・origin・初回pushを確認
+AIが提案した非個人ASCII名で参加者自身のprivate repoを作成し、Git初期化・main・origin・初回pushを確認
   ↓
 そのprivate repoをCodexまたはClaude Codeで開く
   ↓
 同梱されたsupport-sessionとスキルを確認し、--helpを実行
   ↓
-本人へ表示名を確認し、private repoへの保存了承を得る
+端末内のニックネームを確認し、private repoへの保存了承を別に得る
   ↓
 1相談案件1 Issueを開始／再開し、GitHubからread-back
   ↓
@@ -42,7 +44,9 @@
 - [AI向けスキル](../../.agents/skills/machiba-beginner-support/SKILL.md)
 - [GitHubセッション記録仕様](../../.agents/skills/machiba-beginner-support/references/github-session-recording.md)
 - [相談履歴の記録と再利用](../../.agents/skills/machiba-beginner-support/references/consultation-history.md)
+- [名前と保存先のAI判断規則](../../.agents/skills/machiba-beginner-support/references/naming-and-identity.md)
 - [Google Driveへの成果物提出](../../.agents/skills/machiba-beginner-support/references/drive-submission.md)
+- [参加者の名前と保管場所を分ける](./naming-and-identity.md)
 - [運営collaboratorの招待](./private-repo-collaborators.md)
 
 ## 記録先
@@ -51,7 +55,8 @@
 
 | 内容 | 記録先 |
 | --- | --- |
-| 表示名、相談、失敗、解決、学び、次の一手 | 参加者自身のprivate app repoのセッションIssue |
+| 保存了承済みニックネーム、相談、失敗、解決、学び、次の一手 | 参加者自身のprivate app repoのセッションIssue |
+| 申込時の氏名とprivate repoの対応 | 閲覧制限した申込情報・運営台帳 |
 | 依頼されたコード変更 | 同じapp repoのcommitとpush |
 | Google Drive提出の確認結果 | 同じapp repoのセッションIssue |
 | サイトや教材そのものの改善提案 | 公開教材repoの[教材改善Issue Form](https://github.com/icloudaichi/machiba-ai-beginner-support/issues/new/choose) |
@@ -62,15 +67,15 @@
 ## 最初の接続とIssue開始
 
 1. スターターを取得し、`README.md`、`scripts/support-session.mjs`、ローカルスキルが入っていることを確認する。
-2. GitHub接続を安全に確認し、参加者自身のprivate repoを作る。
+2. GitHub接続を安全に確認し、AIが`machiba-ai-app`を提案して参加者自身のprivate repoを作る。同名があれば`machiba-ai-app-2`のように連番を付け、本名やニックネームをrepo名へ入れない。
 3. スターターでGitを初期化し、`main`、`origin`、初回push、GitHub上のPrivate表示とremote commitを確認する。
 4. CodexまたはClaude Codeで、そのprivate repoのフォルダを開く。公開教材repoや別repoなら停止する。
 5. `node scripts/support-session.mjs --help`を実行し、実在するコマンドと引数を確認する。
-6. 相談履歴へ表示する名前を尋ねる。本名は不要と説明する。
-7. その表示名をprivate repoへ保存し、collaboratorにも見えることを説明して、明確な了承を得る。
+6. サイトの端末内進捗にニックネームがあれば候補として示し、なければ講座で何と呼ばれたいかを尋ねる。本名は不要、日本語でもよいと説明する。
+7. そのニックネームをprivate repoへ保存するとcollaboratorにも見えることを説明し、端末保存とは別に明確な了承を得る。申込時の氏名をAIが取得・転記しない。
 8. 標準開始プロンプトの限定承認を確認する。
 9. 同じcloneでは`status`を実行し、進行中のIssue番号と同期状態を確認する。
-10. 進行中のセッションがなければ、本人確認済み表示名で`start`する。別cloneで再開する場合は、本人が示したIssue番号で`resume`する。
+10. 進行中のセッションがなければ、保存了承済みニックネームを`--display-name`へ渡して`start`する。別cloneで再開する場合は、本人が示したIssue番号で`resume`する。
 11. 作成または再開されたIssueをread-backし、確認できた場合だけ「記録済み」と伝える。
 12. その後にCloudflare接続確認と相談内容の確認へ進む。
 
@@ -85,7 +90,7 @@ node scripts/support-session.mjs --help
 node scripts/support-session.mjs status
 node scripts/support-session.mjs start \
   --goal "秘密情報を含まない今日の目的" \
-  --display-name "本人確認済み表示名" \
+  --display-name "保存了承済みニックネーム" \
   --confirm-display-name
 node scripts/support-session.mjs resume --issue "Issue番号"
 ```
@@ -120,7 +125,7 @@ node scripts/support-session.mjs complete \
 
 `complete`は今日の目的が完了したことを確認した後に使います。完了コメントをread-backし、Issueをcloseして、その状態もread-backします。このcloseは標準開始プロンプトの限定承認に含まれます。
 
-表示名付き`start`、`consultation`、`artifact`、`history`、表示名付きセッションの`resume`はprivate repoだけで使います。public repoでは標準相談履歴を開始・再開しません。
+ニックネーム付き`start`、`consultation`、`artifact`、`history`、ニックネーム付きセッションの`resume`はprivate repoだけで使います。public repoでは標準相談履歴を開始・再開しません。
 
 終了コードの意味：
 
@@ -149,9 +154,9 @@ node scripts/support-session.mjs sync
 - remoteでcommit SHAを確認した
 - 今日の目的を完了した
 
-全項目を埋めるために推測しません。相談内容と次の一手は必須とし、背景、試したこと、失敗、解決方法、学び、commitは分かっている場合だけ指定します。生コマンド、生エラー、会話全文、スクリーンショット、表示名以外の個人情報、秘密情報は入れません。
+全項目を埋めるために推測しません。相談内容と次の一手は必須とし、背景、試したこと、失敗、解決方法、学び、commitは分かっている場合だけ指定します。生コマンド、生エラー、会話全文、スクリーンショット、保存了承済みニックネーム以外の個人情報、秘密情報は入れません。
 
-過去履歴を調べるときは、現在の相談を短い検索語へ要約し、同じ表示名markerを持つCLI生成済み相談記録だけを`history`で読みます。過去の解決方法は、現在にも適用できるか本人へ一問ずつ確認してから使います。
+過去履歴を調べるときは、現在の相談を短い検索語へ要約し、同じprivate repo内で同じニックネームのmarkerを持つCLI生成済み相談記録だけを`history`で読みます。同じニックネームだけで別repoの人物を同一人物と推測しません。過去の解決方法は、現在にも適用できるか本人へ一問ずつ確認してから使います。
 
 ## コードを変更した場合
 
@@ -180,7 +185,7 @@ node scripts/support-session.mjs consultation \
 
 2026年8月23日の提出先は[2026.8.23開催／受講者共有用](https://drive.google.com/drive/folders/1sEgVfferbokBUQU440bChvVYyGk338hs)です。この直接URLだけを使い、名前が似た別フォルダを推測しません。
 
-この共有フォルダでは、リンク所持者がファイル名や内容を見られます。private GitHub Issueへ表示名を保存する了承とは別に、提出ファイル名へ表示名を使ってよいか本人へ確認します。本名は不要で、ニックネームを使えます。
+この共有フォルダでは、リンク所持者がファイル名や内容を見られます。private GitHub Issueへニックネームを保存する了承とは別に、同じ名前を使うか、提出用に別の名前を使うか、その名前をファイル名へ使ってよいか本人へ確認します。本名は不要です。
 
 推奨ファイル名は`YYYY-MM-DD_表示名_成果物.zip`です。ZIPには`.env`、秘密鍵、トークン、認証コード、`node_modules`、`.wrangler`、`.git`のローカル状態、個人・顧客データを含めません。
 
@@ -211,7 +216,7 @@ Google Drive提出は標準開始プロンプトのGitHub記録承認には含�
 
 ```text
 記録状態：未開始／記録済み／未反映
-表示名：未確認／確認済み
+ニックネーム：未確認／確認済み
 GitHub：未確認／準備中／接続済み
 Cloudflare：未確認／準備中／接続済み
 Google Drive提出：未準備／確認待ち／アップロード中／Drive確認済み
@@ -239,11 +244,11 @@ node scripts/support-session.mjs resume --issue "Issue番号"
 
 `resume`は現在repoのIssue本文にあるセッションmarkerと、コメントのイベント識別子をGitHubから読み戻して復元します。タイトルが似ているだけのIssueを推測で選びません。Issue番号を確認できなければ、本人へ一問だけ尋ねます。
 
-表示名付きセッションはprivate repoでだけ再開できます。Issueをread-backし、最後の相談、失敗、解決、学び、`次にする一つ`から再開します。成功済みの操作を最初から繰り返しません。
+ニックネーム付きセッションはprivate repoでだけ再開できます。Issueをread-backし、最後の相談、失敗、解決、学び、`次にする一つ`から再開します。成功済みの操作を最初から繰り返しません。
 
 ## 運営が進捗を見る
 
-和佐さん・下山さんなどの運営が表示名ごとの進捗を見るには、参加者が自分のprivate app repoへ、運営のGitHubアカウントをcollaboratorとして招待する必要があります。
+和佐さん・下山さんなどの運営がニックネームごとの進捗を見るには、参加者が自分のprivate app repoへ、運営のGitHubアカウントをcollaboratorとして招待する必要があります。申込時の氏名との対応は閲覧制限した運営台帳で管理し、Issueやrepo名へ氏名を入れません。
 
 collaboratorは相談Issueだけでなく、権限の範囲でrepo内のコードやほかのIssueにもアクセスできます。対象repo、正確なGitHubユーザー名、権限を参加者へ示し、別の明示了承を得てから招待します。標準の相談履歴承認には含めません。詳しくは[運営collaboratorの招待](./private-repo-collaborators.md)を確認します。
 
@@ -253,7 +258,7 @@ collaboratorは相談Issueだけでなく、権限の範囲でrepo内のコー�
 - 表示名を本人へ確認し、保存了承を得ている
 - 表示名や相談詳細を公開repoへ書き込んでいない
 - Issue番号とread-back済み状態を確認できる
-- 会話全文、生出力、表示名以外の個人情報、秘密情報がIssueにない
+- 会話全文、生出力、保存了承済みニックネーム以外の個人情報、秘密情報がIssueにない
 - 失敗・解決方法・学び・次の一手が、分かる範囲で記録されている
 - コード変更がある場合、remote commit SHAがIssueに記録されている
 - Drive提出がある場合、共有ファイル名の表示名を別に確認し、安全なZIPだけを指定フォルダへ新規追加している

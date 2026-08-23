@@ -4,6 +4,9 @@ import {
   COURSE_EVENT_DATE,
   GOOGLE_DRIVE_SUBMISSION_FOLDER_ID,
   GOOGLE_DRIVE_SUBMISSION_FOLDER_URL,
+  REPOSITORY_NAME_BASE,
+  REPOSITORY_NAME_EXAMPLE,
+  REPOSITORY_NAME_FALLBACKS,
   SUPPORT_REPOSITORY_URL,
   SUPPORT_SITE_URL,
   SUPPORT_SKILL_URL,
@@ -32,7 +35,9 @@ test("submission folder points to the course Google Drive folder", () => {
 test("official context requires useful consultation history without raw secrets", () => {
   const prompt = withOfficialContext("starter", "制作スレッド", "変更してください。");
 
-  assert.match(prompt, /参加者名（表示名）/);
+  assert.match(prompt, /相談用表示名/);
+  assert.match(prompt, /この端末の進捗用に呼び名が保存されていても、それだけではprivate Issueへ保存しません/u);
+  assert.match(prompt, /private Issueへの保存を本人が別途了承した/u);
   assert.match(prompt, /相談内容/);
   assert.match(prompt, /試したこと/);
   assert.match(prompt, /解決方法/);
@@ -44,4 +49,15 @@ test("official context requires useful consultation history without raw secrets"
   assert.match(prompt, /記録できたふりをしない/);
   assert.match(prompt, /パスワード/);
   assert.match(prompt, /コマンドやエラーの生出力/);
+});
+
+test("official context separates the Japanese display nickname from the ASCII repository name", () => {
+  const prompt = withOfficialContext("repository-setup", "制作スレッド", "private repoを準備してください。");
+
+  assert.equal(REPOSITORY_NAME_BASE, "machiba-ai-app");
+  assert.equal(REPOSITORY_NAME_EXAMPLE, "machiba-ai-app");
+  assert.deepEqual(REPOSITORY_NAME_FALLBACKS, ["machiba-ai-app-2", "machiba-ai-app-3"]);
+  assert.match(prompt, /相談用表示名は日本語も使えるニックネーム/u);
+  assert.match(prompt, /repo名は別のASCII技術名/u);
+  assert.match(prompt, /本名、相談用表示名、メールアドレスをrepo名へ入れない/u);
 });

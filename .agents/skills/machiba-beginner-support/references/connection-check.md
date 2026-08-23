@@ -2,7 +2,8 @@
 
 ## 原則
 
-- 最初に、スターターが参加者自身のprivate repoとして初回push済みで、そのrepoをCodexまたはClaude Codeが開いていることを確認する。
+- 最初に、現在地が配布されたスターターまたは参加者自身のprivate app repoであり、公開教材repoや無関係なrepoではないことを確認する。
+- private repoをまだ作っていない場合は、PCからGitHubへの接続を確認してから作成する。作成済みなら同じ接続確認を使い、成功済みの設定をやり直さない。
 - 接続状態の確認は読み取りだけで行う。
 - コマンドをまとめて実行せず、GitHub、Cloudflareの順に確認する。
 - 成功した段階をやり直さない。
@@ -37,10 +38,10 @@
 GitHub接続を確認したら、Cloudflare確認へ進む前にprivate repo、同梱ツール、セッションIssueを順に確認する。
 
 1. 対象がGitリポジトリで、`main`、`origin`、初回push済みのremote commitを安全に確認できることを確かめる。
-2. repo名と公開範囲だけを確認する。remote URL、生の設定出力、ローカルパスを会話やIssueへ記録しない。
+2. repo名と公開範囲だけを確認する。新規作成時は、ニックネームとは別の非個人ASCII名`machiba-ai-app`を提案し、同名があれば`machiba-ai-app-2`のように連番を付ける。参加者へ英字のニックネームを考えさせない。remote URL、生の設定出力、ローカルパスを会話やIssueへ記録しない。
 3. 参加者自身のprivate app repoでなければ、IssueやCloudflareへ進まずprivate repoの準備へ戻る。公開教材repo`icloudaichi/machiba-ai-beginner-support`には参加者ログを作らない。
 4. `scripts/support-session.mjs`とローカルスキルを確認し、`node scripts/support-session.mjs --help`だけを先に実行する。ツールがない、またはhelpが一致しなければIssueを作ったふりをしない。
-5. 本人の表示名と保存了承を確認し、標準開始プロンプトの限定承認に基づきセッションIssueを開始または再開する。
+5. 本人が自由に選んだニックネームと保存了承を確認し、標準開始プロンプトの限定承認に基づきセッションIssueを開始または再開する。日本語のニックネームを英字へ変換しない。
 6. Issue作成・再開後はread-backし、確認できた場合だけ「記録済み」とする。
 7. ここまで完了してからCloudflare確認へ進む。
 

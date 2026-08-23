@@ -5,25 +5,39 @@
 ## 最初に読むもの
 
 1. `README.md`
-2. `docs/README.md`
-3. 初心者サポートでは `.agents/skills/machiba-beginner-support/SKILL.md`
-4. 変更対象に関係する資料
+2. 共同編集では `CONTRIBUTING.md`
+3. `docs/README.md`
+4. 初心者サポートでは `.agents/skills/machiba-beginner-support/SKILL.md`
+5. 変更対象に関係する資料
 
 参加者スターターを作る場合は、`docs/operations/starter-support-kit.md`を読み、記録ツール、Codexスキル、Claude Code入口を同じ版で同梱する。
 
+## GitHubで共同編集するとき
+
+- 詳細な正本は`CONTRIBUTING.md`です。Git操作の前に読みます。
+- `main`は公開中の確定版です。直接commitまたはpushしません。
+- Codexは`codex/`、Claude Codeは`claude/`で始まるブランチと、エージェント専用worktreeを使います。
+- 同じブランチや同じworktreeを、Codex、Claude Code、人間で同時に使いません。
+- 作業開始時とcommit前に`git status`を確認し、担当外の変更を削除、上書き、巻き戻しません。
+- 最初はDraft Pull Requestとして共有し、追加修正は同じブランチへpushします。
+- レビュー可能にする前に`git diff --check`と`npm test`を実行します。
+- 差分、検証結果、秘密情報がないことをレビューしてからsquash mergeします。
+- merge後はリモートブランチ、worktree、ローカルブランチを安全に片付けます。
+- mergeとCloudflare deployは別の操作です。deployは明示依頼がある場合だけ行います。
+
 ## 初心者サポート
 
-- 標準開始順は、スターター取得、参加者自身のprivate repo作成・Git初期化・`main`・`origin`・初回push、そのrepoを制作AIで開く、同梱`support-session --help`確認、表示名了承とIssue開始、Cloudflare接続です。
-- 表示名は正しいprivate repoと同梱ツールを確認した後に聞き、private repoへ保存してよいか確認します。
+- 標準開始順は、GitHubアカウントとPC接続の確認、スターター取得、参加者自身のprivate repo作成・Git初期化・`main`・`origin`・初回push、そのrepoを制作AIで開く、同梱`support-session --help`確認、ニックネーム了承とIssue開始、Cloudflare接続です。
+- サイトでは講座中の呼び名を、本人の説明と了承後にこの端末の進捗へ保存できます。private Issueへの保存は別の了承とし、正しいprivate repoと同梱ツールを確認した後に用途と閲覧範囲をもう一度説明します。
 - GitHub接続後、参加者自身のprivate app repoに1つの進行中の相談案件につき1 Issueを開始・再開します。
 - 同じcloneやworktreeでは`status`、別cloneや状態消失時は明示Issue番号の`resume --issue`を使い、似たIssueを推測しません。
 - 相談内容、背景、試したこと、失敗、解決方法、学び、次の一手を構造化して記録し、書き込み後にread-backします。
 - 成果物提出では、共有ファイル名へ使う表示名を別に確認し、安全なZIP、書き込み直前の本人承認、Drive read-back、private Issueへの結果記録を順に行います。
-- 同じ表示名の過去履歴から、再利用できる失敗・解決・学びだけを読み、現在にも使えるか本人へ確認します。
+- 同じニックネームの過去履歴から、再利用できる失敗・解決・学びだけを読み、現在にも使えるか本人へ確認します。同じニックネームだけで別repoの人物を同一人物とみなしません。
 - 一度に一問または一操作だけ案内します。
 - 接続準備中に見えた具体的な操作を材料に、準備後の案内方法を調整します。
 - 人を「初心者レベル1」のように採点しません。
-- 標準開始プロンプトの限定承認は、本人確認済み表示名、相談履歴、別途承認済みでread-backできた成果物提出結果のprivate Issueへの作成・追記・検索・read-backと、目的完了時のcloseだけに使います。
+- 標準開始プロンプトの限定承認は、保存了承済みニックネーム、相談履歴、別途承認済みでread-backできた成果物提出結果のprivate Issueへの作成・追記・検索・read-backと、目的完了時のcloseだけに使います。
 - 本人がコード変更を依頼した場合だけ、その依頼範囲を変更・検証・commit・pushし、remote SHAをIssueへ記録します。
 - mergeとdeployは、別の明示依頼があるまで行いません。
 - Google Drive提出はブラウザを標準とします。AI接続は希望者向け発展とし、Google公式OAuth／公式コネクタを一操作ずつ案内し、接続承認とアップロード承認を分けます。
@@ -38,14 +52,14 @@
 
 ## 安全
 
-- 表示名は本人へ用途と閲覧範囲を説明し、保存了承後だけprivate repoへ記録します。
-- パスワード、認証コード、トークン、秘密鍵、カード情報、表示名以外の個人情報を要求・保存・復唱しません。
+- この端末の進捗へのニックネーム保存と、private Issueへの保存了承を分けます。Issueには用途と閲覧範囲を説明し、別途了承された後だけ記録します。
+- パスワード、認証コード、トークン、秘密鍵、カード情報、保存了承済みニックネーム以外の個人情報を要求・保存・復唱しません。
 - GitHub・Cloudflareの接続診断は、標準出力と標準エラーを捨て、終了コードだけで判定します。
 - コマンド出力に含まれるユーザー名、メールアドレス、アカウントIDをAIのツール実行記録や回答へ残しません。
 - 診断失敗時も、未加工の出力を取得せず、一段階ずつ原因を切り分けます。
 - 認証や公開の確認を、別の外部操作の許可として扱いません。
 - 会話全文、思考過程、コマンドの生出力、ローカルパス、GitHubユーザー名、メールアドレス、アカウントIDをIssueへ書きません。
-- 表示名と相談詳細はpublic repoへ書きません。対象がpublicならprivate repoの準備へ戻ります。
+- ニックネームと相談詳細はpublic repoへ書きません。対象がpublicならprivate repoの準備へ戻ります。
 - セッションと公開許可を開始時のcanonical repo名・不変repo IDへ結び付け、repo不一致ではfail closedにします。
 - 公開教材repoには参加者ログを書かず、教材改善Issueだけを受け付けます。
 - 運営collaboratorの招待は限定承認に含めず、対象repo、GitHubユーザー名、権限を示して本人の明示了承を得ます。
@@ -58,6 +72,7 @@
 ## ファイルを変更するとき
 
 - 依頼された範囲を確認し、関係のない変更を元に戻しません。
+- 自分の担当ファイルだけをstageし、別エージェントの未完了変更をcommitへ混ぜません。
 - アプリ本体を変更する依頼と、初心者への助言を同じ作業として混ぜません。
 - UIやコードを変更した場合は `npm test` を実行します。
 - ドキュメントだけを変更した場合も、リンク、相対パス、秘密情報の混入を確認します。
