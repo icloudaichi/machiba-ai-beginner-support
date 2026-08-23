@@ -2,7 +2,7 @@
 
 ## 原則
 
-- 最初にOSと対象プロジェクトを確認する。
+- 最初に、スターターが参加者自身のprivate repoとして初回push済みで、そのrepoをCodexまたはClaude Codeが開いていることを確認する。
 - 接続状態の確認は読み取りだけで行う。
 - コマンドをまとめて実行せず、GitHub、Cloudflareの順に確認する。
 - 成功した段階をやり直さない。
@@ -34,14 +34,15 @@
 
 ### 接続後
 
-GitHub接続を確認したら、Cloudflare確認へ進む前にセッション記録を開始する。
+GitHub接続を確認したら、Cloudflare確認へ進む前にprivate repo、同梱ツール、セッションIssueを順に確認する。
 
-1. 対象がGitリポジトリであり、GitHub remoteを1つに特定できることを確認する。
+1. 対象がGitリポジトリで、`main`、`origin`、初回push済みのremote commitを安全に確認できることを確かめる。
 2. repo名と公開範囲だけを確認する。remote URL、生の設定出力、ローカルパスを会話やIssueへ記録しない。
-3. 参加者自身の非公開アプリrepoなら、標準開始プロンプトの限定承認に基づきセッションIssueを開始または再開する。
-4. 公開repoなら自動的に開始しない。公開される内容と対象repoを本人へ示し、明示許可を得た場合だけツールの`--allow-public`を使う。
-5. 公開教材repo`icloudaichi/machiba-ai-beginner-support`には参加者ログを作らない。
+3. 参加者自身のprivate app repoでなければ、IssueやCloudflareへ進まずprivate repoの準備へ戻る。公開教材repo`icloudaichi/machiba-ai-beginner-support`には参加者ログを作らない。
+4. `scripts/support-session.mjs`とローカルスキルを確認し、`node scripts/support-session.mjs --help`だけを先に実行する。ツールがない、またはhelpが一致しなければIssueを作ったふりをしない。
+5. 本人の表示名と保存了承を確認し、標準開始プロンプトの限定承認に基づきセッションIssueを開始または再開する。
 6. Issue作成・再開後はread-backし、確認できた場合だけ「記録済み」とする。
+7. ここまで完了してからCloudflare確認へ進む。
 
 詳細は[GitHubセッション記録](github-session-recording.md)を読む。
 
@@ -59,7 +60,7 @@ GitHub接続を確認したら、Cloudflare確認へ進む前にセッション�
 
 CLIはあるのに再確認も失敗する場合、ツール側で未加工の出力を取得しない。必要なら本人の端末で表示を確認してもらい、ユーザー名、メールアドレス、アカウントID、トークンを除いた一般的な状態だけを一つ尋ねる。全文やスクリーンショットを貼らせない。
 
-対象プロジェクトを開いたAI相談スレッドでは、そのままセットアップを続けられる。導入やログインの前に、操作の目的、変わること、ブラウザが開くことを説明し、本人の確認後に一操作ずつ進める。結果はセッションIssueへ安全な要約として記録する。
+private repoを開いたAI相談スレッドでは、そのままセットアップを続けられる。導入やログインの前に、操作の目的、変わること、ブラウザが開くことを説明し、本人の確認後に一操作ずつ進める。Issue開始前のGitHub接続結果はIssueへ遡って作ったふりをせず、Issue開始後の相談と作業だけを安全に要約する。
 
 次は接続確認に使わない。
 

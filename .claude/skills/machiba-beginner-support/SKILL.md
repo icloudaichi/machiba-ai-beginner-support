@@ -1,6 +1,6 @@
 ---
 name: machiba-beginner-support
-description: 対象プロジェクトでGitHub・Cloudflare接続を一操作ずつ確認し、1相談案件1 Issueへ安全な成功・失敗・次の一手を記録しながら初心者を伴走する。
+description: 対象プロジェクトで本人確認済み表示名に紐づく相談・失敗・解決・学び・成果物提出をprivate repoの1相談案件1 Issueへ記録し、過去履歴を再利用しながら初心者を伴走する。
 ---
 
 # 街場のAI屋さん・初心者サポート

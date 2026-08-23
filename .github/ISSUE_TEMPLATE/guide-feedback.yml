@@ -6,8 +6,8 @@ body:
     attributes:
       value: |
         このフォームは、公開教材そのものの改善専用です。
-        参加者個人の成功・失敗ログは、自分のprivate app repoにあるセッションIssueへ記録してください。
-        パスワード、認証コード、トークン、メールアドレス、アカウントID、会話全文、コマンドやエラーの生出力は書かないでください。
+        参加者個人の相談・試行・失敗・解決・学び・成果物提出記録は、自分のprivate app repoにあるセッションIssueへ記録してください。
+        パスワード、認証コード、トークン、メールアドレス、アカウントID、成果物の個別Drive URL、会話全文、コマンドやエラーの生出力は書かないでください。
   - type: dropdown
     id: target
     attributes:
@@ -18,6 +18,7 @@ body:
         - AI相談室の開始プロンプト
         - 初心者サポートスキル
         - GitHub記録ツール
+        - Google Drive成果物提出
         - その他の公開資料
     validations:
       required: true

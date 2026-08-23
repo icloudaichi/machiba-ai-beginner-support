@@ -1,3 +1,5 @@
+import { GOOGLE_DRIVE_SUBMISSION_FOLDER_ID } from "./support-context.ts";
+
 export type OsChoice = "" | "mac" | "windows";
 export type AiChoice = "" | "chatgpt" | "claude";
 export type ProjectStatus = "not-ready" | "ready";
@@ -11,30 +13,50 @@ export type ConnectionStatus =
 export type SetupGate = "pending" | "ready" | "local-fallback";
 export type SupportMode = "" | "slow" | "step" | "summary";
 export type GitHubLogStatus = "not-started" | "local-queued" | "synced" | "blocked";
+export type SubmissionUploadRoute = "browser" | "connector" | "api";
+export type StarterStatus = "not-ready" | "ready";
+export type RepositoryStatus = "not-ready" | "private-ready" | "local-only";
+export type SupportKitStatus = "not-checked" | "ready" | "missing";
+export type DriveSubmissionStatus = "not-started" | "submitted";
+export type DriveIssueRecordStatus = "not-started" | "waiting" | "synced";
 export type StepId =
   | "device"
-  | "project-folder"
   | "github-account"
   | "github-connect"
+  | "starter-obtain"
+  | "repository-setup"
+  | "project-folder"
+  | "support-kit"
+  | "github-log"
   | "cloudflare-account"
   | "cloudflare-connect"
   | "setup-gate"
   | "support-mode"
   | "idea"
   | "starter"
-  | "publish";
+  | "publish"
+  | "submit";
 
 export type SupportProgress = {
-  version: 3;
+  version: 7;
+  displayName: string;
+  nameConsent: boolean;
   os: OsChoice;
   ai: AiChoice;
+  starterStatus: StarterStatus;
+  repositoryStatus: RepositoryStatus;
   projectStatus: ProjectStatus;
+  supportKitStatus: SupportKitStatus;
   githubStatus: ConnectionStatus;
   cloudflareStatus: ConnectionStatus;
   setupGate: SetupGate;
   supportMode: SupportMode;
   githubLogStatus: GitHubLogStatus;
   githubIssueNumber: number | null;
+  driveSubmissionStatus: DriveSubmissionStatus;
+  driveIssueRecordStatus: DriveIssueRecordStatus;
+  driveSubmissionFileName: string;
+  driveSubmissionUploadRoute: SubmissionUploadRoute | "";
   currentStep: StepId;
   completedSteps: StepId[];
   updatedAt: number;
@@ -42,9 +64,13 @@ export type SupportProgress = {
 
 export const stepOrder: StepId[] = [
   "device",
-  "project-folder",
   "github-account",
   "github-connect",
+  "starter-obtain",
+  "repository-setup",
+  "project-folder",
+  "support-kit",
+  "github-log",
   "cloudflare-account",
   "cloudflare-connect",
   "setup-gate",
@@ -52,19 +78,29 @@ export const stepOrder: StepId[] = [
   "idea",
   "starter",
   "publish",
+  "submit",
 ];
 
 export const initialProgress: SupportProgress = {
-  version: 3,
+  version: 7,
+  displayName: "",
+  nameConsent: false,
   os: "",
   ai: "",
+  starterStatus: "not-ready",
+  repositoryStatus: "not-ready",
   projectStatus: "not-ready",
+  supportKitStatus: "not-checked",
   githubStatus: "unknown",
   cloudflareStatus: "unknown",
   setupGate: "pending",
   supportMode: "",
   githubLogStatus: "not-started",
   githubIssueNumber: null,
+  driveSubmissionStatus: "not-started",
+  driveIssueRecordStatus: "not-started",
+  driveSubmissionFileName: "",
+  driveSubmissionUploadRoute: "",
   currentStep: "device",
   completedSteps: [],
   updatedAt: 0,
@@ -78,6 +114,118 @@ const allowedStatuses: ConnectionStatus[] = [
   "account-blocked",
   "connection-blocked",
 ];
+
+export function sanitizeDisplayName(value: unknown) {
+  if (typeof value !== "string") return "";
+  const withoutControlCharacters = [...value].filter(character => {
+    const codePoint = character.codePointAt(0) ?? 0;
+    return codePoint >= 32 && codePoint !== 127;
+  }).join("");
+  return withoutControlCharacters
+    .replace(/\s+/g, " ")
+    .replace(/[^\p{L}\p{M}\p{N} .・ー_-]/gu, "")
+    .trim()
+    .slice(0, 40);
+}
+
+export function buildParticipantPromptContext(value: unknown, confirmed = false) {
+  const displayName = sanitizeDisplayName(value);
+  if (!displayName || !confirmed) {
+    return "参加者名（表示名）：未入力\n先へ進む前に、講座で呼ばれたい表示名を一度だけ質問し、本人の返答を復唱して確認してください。確認できるまでセッションIssueを開始しないでください。";
+  }
+
+  return `参加者名（表示名）：${displayName}\nこの表示名は本人が入力し、確認済みです。セッション開始時は scripts/support-session.mjs start に --display-name "${displayName}" --confirm-display-name を渡し、同じ表示名をセッションIssueと以後の記録で使ってください。`;
+}
+
+export function sanitizeSubmissionFileName(value: unknown) {
+  if (typeof value !== "string") return "";
+  return value
+    .replace(/\s+/g, " ")
+    .replace(/[^\p{L}\p{M}\p{N} .・ー_()-]/gu, "")
+    .replace(/^\.+/u, "")
+    .trim()
+    .slice(0, 120);
+}
+
+export function canRecordDriveIssue(githubLogStatus: GitHubLogStatus, githubIssueNumber: number | null) {
+  return githubLogStatus === "synced"
+    && typeof githubIssueNumber === "number"
+    && Number.isSafeInteger(githubIssueNumber)
+    && githubIssueNumber > 0;
+}
+
+export function deriveDriveIssueRecordStatus(
+  driveSubmissionStatus: DriveSubmissionStatus,
+  requestedStatus: DriveIssueRecordStatus,
+  githubLogStatus: GitHubLogStatus,
+  githubIssueNumber: number | null,
+): DriveIssueRecordStatus {
+  if (driveSubmissionStatus !== "submitted") return "not-started";
+  if (requestedStatus === "synced" && canRecordDriveIssue(githubLogStatus, githubIssueNumber)) return "synced";
+  return "waiting";
+}
+
+export function sanitizeDriveFileUrl(value: unknown) {
+  if (typeof value !== "string" || value.length > 500 || /[\r\n\u2028\u2029]/u.test(value)) return "";
+  try {
+    const url = new URL(value.trim());
+    if (
+      url.protocol !== "https:" ||
+      url.hostname.toLowerCase() !== "drive.google.com" ||
+      url.username ||
+      url.password ||
+      url.port ||
+      url.hash
+    ) return "";
+    const allowedUspValues = new Set(["sharing", "drive_link", "docs_web", "sheets_web", "slides_web"]);
+    for (const [key, queryValue] of url.searchParams) {
+      if (key !== "usp" || !allowedUspValues.has(queryValue)) return "";
+    }
+    const filePath = /^\/file(?:\/u\/[0-9]+)?\/d\/[A-Za-z0-9_-]{10,}(?:\/(?:view|preview|edit))?\/?$/u;
+    return filePath.test(url.pathname) ? url.toString() : "";
+  } catch {
+    return "";
+  }
+}
+
+export function buildSubmissionRecordPrompt({
+  displayName,
+  fileName,
+  fileUrl,
+  uploadRoute,
+}: {
+  displayName: unknown;
+  fileName: unknown;
+  fileUrl: unknown;
+  uploadRoute: unknown;
+}) {
+  const safeDisplayName = sanitizeDisplayName(displayName);
+  const safeFileName = sanitizeSubmissionFileName(fileName);
+  const submittedFileUrl = typeof fileUrl === "string" ? fileUrl.trim() : "";
+  const safeFileUrl = sanitizeDriveFileUrl(fileUrl);
+  const safeUploadRoute = uploadRoute === "browser" || uploadRoute === "connector" || uploadRoute === "api"
+    ? uploadRoute
+    : "";
+  if (!safeDisplayName || !safeFileName.toLowerCase().endsWith(".zip")) return "";
+  if (submittedFileUrl && !safeFileUrl) return "";
+  if (!safeUploadRoute) return "";
+  const driveUrlArgument = safeFileUrl ? ` --drive-url "${safeFileUrl}"` : "";
+  const artifactCommand = `node scripts/support-session.mjs artifact --filename "${safeFileName}" --folder-id ${GOOGLE_DRIVE_SUBMISSION_FOLDER_ID} --parent-verified${driveUrlArgument} --upload-route ${safeUploadRoute} --read-back-verified --summary "Google Driveに成果物を提出し読み戻し確認済み" --next "講師の確認と次の制作相談"`;
+
+  return `提出結果を、今開いている対象アプリのprivate GitHubリポジトリにあるセッションIssueへ記録してください。公開教材リポジトリには記録しないでください。
+
+- 参加者名（表示名）：${safeDisplayName}
+- 提出ファイル名：${safeFileName}
+- Google DriveファイルURL：${safeFileUrl || "未記録（ファイル名と読み戻し確認のみ）"}
+- 実際のアップロード経路：${safeUploadRoute}
+- 読み戻し確認：共有フォルダのファイル一覧またはファイルメタデータで、同じファイル名が存在することを確認済み
+
+最初に node scripts/support-session.mjs --help を実行し、artifactコマンドがあることを確認してください。あれば次のコマンドを使い、同じprivate Issueへ記録してください。
+
+${artifactCommand}
+
+artifactコマンドがなければ、別コマンドで代用したり記録したふりをせず、サポートキットの更新が必要だと報告してください。STEP IDは submit、結果は成功として、提出内容を短く追記してください。folder-idは提出先の検証だけに使い、Issue本文へ記録しないでください。パスワード、認証コード、トークン、秘密鍵、生のコマンド出力、ファイルの絶対パス、個人・顧客データは記録しないでください。Google Driveの共有設定や権限は変更しないでください。書き込み後は同じIssueをGitHubから再読み取りし、記録できたこととIssue番号だけを報告してください。`;
+}
 
 export function isBlocked(status: ConnectionStatus) {
   return status === "account-blocked" || status === "connection-blocked";
@@ -121,7 +269,16 @@ export function sanitizeProgress(value: unknown): SupportProgress {
     : [];
   const os: OsChoice = candidate.os === "mac" || candidate.os === "windows" ? candidate.os : "";
   const ai: AiChoice = candidate.ai === "chatgpt" || candidate.ai === "claude" ? candidate.ai : "";
+  const nameConsent = candidate.nameConsent === true;
+  const displayName = nameConsent ? sanitizeDisplayName(candidate.displayName) : "";
+  const starterStatus: StarterStatus = candidate.starterStatus === "ready" ? "ready" : "not-ready";
+  const repositoryStatus: RepositoryStatus = candidate.repositoryStatus === "private-ready" || candidate.repositoryStatus === "local-only"
+    ? candidate.repositoryStatus
+    : "not-ready";
   const projectStatus: ProjectStatus = candidate.projectStatus === "ready" ? "ready" : "not-ready";
+  const supportKitStatus: SupportKitStatus = candidate.supportKitStatus === "ready" || candidate.supportKitStatus === "missing"
+    ? candidate.supportKitStatus
+    : "not-checked";
   const githubStatus = migrateBlockedStatus(candidate.githubStatus, "github-account", completedSteps);
   const cloudflareStatus = migrateBlockedStatus(candidate.cloudflareStatus, "cloudflare-account", completedSteps);
   const allowedModes: SupportMode[] = ["", "slow", "step", "summary"];
@@ -137,42 +294,79 @@ export function sanitizeProgress(value: unknown): SupportProgress {
     && candidate.githubIssueNumber > 0
     ? candidate.githubIssueNumber
     : null;
+  const safeDriveSubmissionFileName = sanitizeSubmissionFileName(candidate.driveSubmissionFileName);
+  const driveSubmissionStatus: DriveSubmissionStatus = candidate.driveSubmissionStatus === "submitted"
+    && safeDriveSubmissionFileName.toLowerCase().endsWith(".zip")
+    ? "submitted"
+    : "not-started";
+  const driveSubmissionUploadRoute: SubmissionUploadRoute | "" = candidate.driveSubmissionUploadRoute === "browser"
+    || candidate.driveSubmissionUploadRoute === "connector"
+    || candidate.driveSubmissionUploadRoute === "api"
+    ? candidate.driveSubmissionUploadRoute
+    : "";
+  const requestedDriveIssueRecordStatus: DriveIssueRecordStatus = candidate.driveIssueRecordStatus === "waiting" || candidate.driveIssueRecordStatus === "synced"
+    ? candidate.driveIssueRecordStatus
+    : "not-started";
+  const driveIssueRecordStatus = deriveDriveIssueRecordStatus(
+    driveSubmissionStatus,
+    requestedDriveIssueRecordStatus,
+    githubLogStatus,
+    githubIssueNumber,
+  );
   const requestedStep = isStepId(candidate.currentStep) ? candidate.currentStep : "device";
-  const currentStep = (candidate.version ?? 0) < 3
+  let currentStep = (candidate.version ?? 0) < 3
     && githubStatus === "connected"
     && githubLogStatus === "not-started"
     && stepOrder.indexOf(requestedStep) > stepOrder.indexOf("github-connect")
     ? "github-connect"
     : requestedStep;
+  if ((candidate.version ?? 0) < 5 && currentStep === "publish" && completedSteps.includes("publish")) {
+    currentStep = "submit";
+  }
+  if ((candidate.version ?? 0) < 7 && stepOrder.indexOf(requestedStep) > stepOrder.indexOf("github-connect")) {
+    currentStep = githubStatus === "connected" ? "starter-obtain" : "github-account";
+  }
 
   return {
-    version: 3,
+    version: 7,
+    displayName,
+    nameConsent,
     os,
     ai,
+    starterStatus,
+    repositoryStatus,
     projectStatus,
+    supportKitStatus,
     githubStatus,
     cloudflareStatus,
     setupGate: deriveGate(projectStatus, githubStatus, cloudflareStatus, githubLogStatus),
     supportMode,
     githubLogStatus,
     githubIssueNumber,
+    driveSubmissionStatus,
+    driveIssueRecordStatus,
+    driveSubmissionFileName: driveSubmissionStatus === "submitted" ? safeDriveSubmissionFileName : "",
+    driveSubmissionUploadRoute: driveSubmissionStatus === "submitted" ? driveSubmissionUploadRoute : "",
     currentStep,
     completedSteps,
     updatedAt: typeof candidate.updatedAt === "number" ? candidate.updatedAt : 0,
   };
 }
 
-export function nextConnectionStep(progress: Pick<SupportProgress, "projectStatus" | "githubStatus" | "cloudflareStatus"> & Partial<Pick<SupportProgress, "githubLogStatus">>): StepId {
-  if (progress.projectStatus !== "ready") return "project-folder";
-
+export function nextConnectionStep(progress: Pick<SupportProgress, "starterStatus" | "repositoryStatus" | "projectStatus" | "supportKitStatus" | "githubStatus" | "cloudflareStatus"> & Partial<Pick<SupportProgress, "githubLogStatus">>): StepId {
   if (
     progress.githubStatus === "unknown" ||
     progress.githubStatus === "preparing" ||
     progress.githubStatus === "account-blocked"
   ) return "github-account";
   if (progress.githubStatus === "account-ready" || progress.githubStatus === "connection-blocked") return "github-connect";
-  if (progress.githubStatus === "connected" && progress.githubLogStatus !== undefined
-    && progress.githubLogStatus !== "synced" && progress.githubLogStatus !== "local-queued") return "github-connect";
+
+  if (progress.starterStatus !== "ready") return "starter-obtain";
+  if (progress.repositoryStatus !== "private-ready") return "repository-setup";
+  if (progress.projectStatus !== "ready") return "project-folder";
+  if (progress.supportKitStatus !== "ready") return "support-kit";
+  if (progress.githubLogStatus !== undefined
+    && progress.githubLogStatus !== "synced" && progress.githubLogStatus !== "local-queued") return "github-log";
 
   if (
     progress.cloudflareStatus === "unknown" ||

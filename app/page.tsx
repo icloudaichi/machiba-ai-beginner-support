@@ -2,9 +2,14 @@
 
 import { useState } from "react";
 import SupportGuide from "./support-guide";
-import { SUPPORT_REPOSITORY_URL, SUPPORT_SITE_URL } from "./support-context";
+import {
+  COURSE_EVENT_DATE,
+  GOOGLE_DRIVE_SUBMISSION_FOLDER_URL,
+  SUPPORT_REPOSITORY_URL,
+  SUPPORT_SITE_URL,
+} from "./support-context";
 
-function deckPrompt(stepId: string, target: "AI相談室" | "制作スレッド", instruction: string) {
+function deckPrompt(stepId: string, target: "準備用チャット" | "AI相談室" | "制作スレッド", instruction: string) {
   return `街場のAI屋さん公式ガイド：${SUPPORT_SITE_URL}\n教材・AI手順の正本：${SUPPORT_REPOSITORY_URL}\nSTEP ID：${stepId}\n貼り付け先：${target}\nURLを読めない場合は読んだふりをせず伝えてください。\n\n${instruction}`;
 }
 
@@ -79,10 +84,10 @@ const setupGuideSteps = [
   {
     number: "01",
     label: "案内の進め方を固定する",
-    title: "AIを「一つずつ案内する係」にしよう",
-    lead: "先に進行ルールを渡すと、AIが何個も操作を並べず、あなたの画面を確認しながら待ってくれます。",
-    actions: ["AI相談室を開く", "下の詳細プロンプトをコピーして送る", "AIが最初の質問を一つだけしたか確認する"],
-    prompt: deckPrompt("setup-guidance", "AI相談室", "あなたは、AIやパソコンに不慣れな人のセットアップ案内係です。対象プロジェクトを開いたCodexまたはClaude Codeのスレッドを標準にします。一度の返答では一問または一操作だけ示し、理由、成功時に見えるもの、返してほしい結果を伝えて待ってください。パスワード、認証コード、秘密鍵、カード情報、コマンドの生出力は要求・保存しないでください。scripts/support-session.mjs がある場合、開始後の成功・失敗・次の一手だけをGitHub Issueへ構造化して記録し、再読み取りしてください。最初は、私が使っているPCを一つだけ質問してください。"),
+    title: "まず、準備を「一つずつ案内」してもらおう",
+    lead: "作品のフォルダを作る前は、普通のChatGPTまたはClaudeを準備案内に使います。ここではまだGitHub Issueへ記録しません。",
+    actions: ["ChatGPTまたはClaudeのチャットを開く", "下の詳細プロンプトをコピーして送る", "AIがPCについて一問だけ質問したか確認する"],
+    prompt: deckPrompt("setup-guidance", "準備用チャット", "あなたは、AIやパソコンに不慣れな人の講座準備案内係です。一度の返答では一問または一操作だけ示し、操作する理由、うまくいけば見えるもの、終わったら返してほしい言葉を伝えて待ってください。パスワード、認証コード、秘密鍵、カード情報、コマンドの生出力は要求・保存しないでください。まだ作品のprivate GitHubリポジトリはないため、GitHub Issueへの記録やCloudflare接続は始めないでください。最初は、私が使っているPCがMacかWindowsかを一問だけ質問してください。"),
     checks: ["AIから質問が一つだけ届いた", "AIが返事を待っている"],
     tip: "途中で案内がまとめて出たら「一つずつに戻してください」と伝えます。",
     page: 24,
@@ -135,22 +140,22 @@ const setupGuideSteps = [
     number: "06",
     label: "PCとGitHubをつなぐ",
     title: "GitHubへ接続しよう",
-    lead: "ブラウザで作ったGitHubアカウントと、このPCで働くCodexを一度つなぎます。接続後は、作品の保存とAI相談の作業記録をAIが進められます。",
-    actions: ["CodexにGitHub CLIがあるか確認してもらう", "ブラウザ認証を開き、自分で許可して接続確認を行う", "非公開の作品リポジトリでセッションIssueを開始する"],
-    prompt: deckPrompt("github-connect/session-log", "制作スレッド", "このPCとGitHubの接続状況を、標準出力と標準エラーを表示せず終了ステータスだけで確認してください。接続後、scripts/support-session.mjs があれば、この相談の成功・失敗・現在地を残すセッションIssueを開始してください。この依頼は、構造化したIssueの作成・追記・再読み取りと、私が終了を依頼した後のクローズだけを許可し、mergeや公開の許可ではありません。1つのアプリ用リポジトリでは同時に1つのサポートセッションだけを進めます。参加者自身の非公開アプリ用リポジトリを標準とし、公開リポジトリでは明示許可なしに記録しないでください。成功時はIssue番号だけを伝えてください。"),
-    checks: ["Codexが出力を表示せず接続状態だけを確認できた", "セッションIssueまたはPC内の同期待ち記録を開始できた"],
-    tip: "以後は『できました』『エラーが出ました』もAIが作業日誌へ短く残します。会話全文は保存しません。",
+    lead: "ブラウザで作ったGitHubアカウントと、このPCを一度つなぎます。このページでは接続だけを確認し、作品repoやIssueは次の章で作ります。",
+    actions: ["GitHub CLIがあるか確認してもらう", "必要なら公式手順で導入する", "ブラウザ認証を自分で許可し、接続状態だけを確認する"],
+    prompt: deckPrompt("github-connect", "準備用チャット", "このPCとGitHubの接続を、一操作ずつ案内してください。GitHub CLIがなければ、公式手順による導入を説明し、私の確認を待ってから進めてください。接続確認では標準出力と標準エラーを表示せず、終了ステータスだけを使ってください。ブラウザ認証、インストール、ログインの前には、何が変わるかを説明して私の返事を待ってください。ユーザー名、メール、認証コード、トークンはチャットへ表示しないでください。ここではリポジトリ作成、Issue作成、Cloudflare接続を行わないでください。"),
+    checks: ["PCからGitHubへ接続できた", "作品repoやIssueはまだ作っていない"],
+    tip: "接続・作品の保存場所・相談記録を分けると、どこまで終わったかが分かります。",
     page: 29,
   },
   {
     number: "07",
-    label: "PCとCloudflareをつなぐ",
-    title: "Cloudflareへ接続しよう",
-    lead: "CloudflareアカウントとCodexをブラウザ認証でつなぎます。接続後は公開やデータベース作成をAIへ頼めます。",
-    actions: ["CodexにWranglerがあるか確認してもらう", "プロジェクト内で使える状態か確認する", "ブラウザの認証画面で、自分のCloudflareアカウントを許可する"],
-    prompt: "このプロジェクトとCloudflareの接続状況を確認してください。package.jsonとプロジェクト内のWranglerだけを確認し、npxで未導入パッケージを自動取得しないでください。ローカルのWranglerがある場合だけ、whoamiの標準出力と標準エラーを抑制し、終了ステータスだけを確認してください。コマンド出力、アカウント名、メール、Account IDは表示せず、『接続済み／未接続』だけを報告してください。導入や認証を始める前に説明して私の返事を待ち、APIトークン、パスワード、確認コードは貼らせないでください。まだ公開やD1作成は行わないでください。",
-    checks: ["CodexがCloudflareへのログインを確認できた", "まだ公開せず、接続だけで止まっている"],
-    tip: "接続と公開を分けることで、何が起きたかを落ち着いて確認できます。",
+    label: "実践の順番を確認する",
+    title: "作品の場所を作ってから、相談記録を始めます",
+    lead: "Cloudflareへ先につなぎません。スターターを自分のprivate GitHub repoへ保存し、正しいフォルダをAIで開いてから記録を始めます。",
+    actions: ["スターターを受け取る", "private repoを作り、main・origin・pushを確認する", "repoをAIで開き、同梱ツール確認→Issue開始→Cloudflare接続の順に進む"],
+    prompt: deckPrompt("practice-order", "準備用チャット", "次の実践順を確認してください。1 スターター取得、2 参加者自身のprivate GitHub repoを作成してGit初期化・main・origin・初回pushを確認、3 そのrepoをCodexまたはClaude Codeで開く、4 同梱されたscripts/support-session.mjsのhelpを確認、5 表示名の保存了承後に相談Issueを開始してread-back、6 その後にプロジェクトからCloudflareへ接続、です。順番を入れ替えず、今は最初の未完了項目だけを質問してください。"),
+    checks: ["private repoが相談記録の前提だと分かった", "Cloudflare接続はIssue開始後だと分かった"],
+    tip: "作品の場所が先に決まるため、相談履歴を別のrepoへ誤記録しにくくなります。",
     page: 30,
   },
 ] as const;
@@ -158,89 +163,89 @@ const setupGuideSteps = [
 const practiceSteps = [
   {
     number: "01",
-    label: "質問できる場所をつくる",
-    title: "プロジェクトのAI相談室を開こう",
-    lead: "対象プロジェクトを開いたCodexまたはClaude Codeに、質問と作業記録を担当するスレッドを作ります。普通のChatGPTやClaudeは説明だけに使えますが、PC確認とGitHub自動記録はできません。",
-    actions: ["作品のプロジェクトフォルダをCodexまたはClaude Codeで開く", "新しいタスクを「AI相談室｜このアプリ」にする", "下の公式URL付きプロンプトを送る"],
-    prompt: deckPrompt("adviser-room", "AI相談室", "私はAIもアプリづくりも初めてです。難しい言葉は普段の日本語で説明し、一度に一つずつ質問してください。このプロジェクトに scripts/support-session.mjs がある場合は、GitHub記録の現在地を確認してください。まだGitHubへ接続できない間はPC内に同期待ちとして残し、接続後にIssueへ同期してください。記録するのはSTEP、成功・失敗・次の一手だけです。会話全文、個人情報、秘密情報、生のコマンド出力は記録しないでください。"),
-    checks: ["対象プロジェクトを開いたAI相談室が見える", "公式ガイドとGitHub記録方針をAIが説明できた"],
-    tip: "次のAIスレッドはGitHub Issueを読み、成功済みの操作をやり直さず続きから再開します。",
+    label: "見本を受け取る",
+    title: "スターターフォルダを準備しよう",
+    lead: "最初から全部を作らず、講師が用意した見本を受け取り、自分の作品にする準備をします。",
+    actions: ["講師が案内したGoogle DriveからスターターZIPをダウンロードする", "ZIPを展開して普通のフォルダにする", "README.mdとscriptsフォルダがあることを確認する"],
+    prompt: deckPrompt("starter-acquisition", "準備用チャット", "スターターZIPをダウンロードしました。まだCloudflare接続やIssue作成は始めず、ZIPを展開して、README.mdとscripts/support-session.mjsが見えるところまで一操作ずつ案内してください。フォルダの絶対パス、ユーザー名、個人情報はチャットへ書かせないでください。"),
+    checks: ["ZIPではなくフォルダが見える", "README.mdとscripts/support-session.mjsがある"],
+    tip: "必要なサポート道具まで入っているスターターを使います。足りなければ、先へ進まず講師へ確認します。",
     page: 32,
   },
   {
     number: "02",
-    label: "作品を置く場所をつくる",
-    title: "スターターフォルダを準備しよう",
-    lead: "最初から全部を作らず、講師が用意した見本をコピーして、自分の作品として育てます。",
-    actions: ["Google DriveからスターターZIPをダウンロードする", "ZIPを展開して、普通のフォルダにする", "「書類」など、後から見つけやすい場所へ移す"],
-    prompt: "スターターZIPをダウンロードしました。私の画面を見ながら、展開して分かりやすい場所へ置くまで一つずつ案内してください。",
-    checks: ["ZIPではなくフォルダが見える", "中に README.md がある"],
-    tip: "フォルダ名は日本語でも構いません。今回は「はじめてのアプリ」でも大丈夫です。",
+    label: "自分の保管場所をつくる",
+    title: "private GitHub repoへ最初の版を保存しよう",
+    lead: "相談履歴を始める前に、スターターを参加者自身のprivate repoへ保存します。AIまたは講師がGit操作を行い、あなたは公開範囲と結果を確認します。",
+    actions: ["作成するrepo名とPrivate表示を確認する", "スターターでGitを初期化し、mainとoriginを設定する", "最初のcommitをpushし、GitHub上のファイルとPrivate表示を読み戻す"],
+    prompt: deckPrompt("private-repo-bootstrap", "準備用チャット", "このスターターフォルダを、私自身の新しいprivate GitHub repoへ保存するセットアップだけを案内してください。最初にrepo名、Privateで作ること、変更される内容を説明し、私の確認を待ってください。了承後、Git初期化、既定branchをmainに設定、秘密情報と不要ファイルの除外確認、最初のcommit、新しいprivate repoの作成、origin設定、pushを一操作ずつ進めてください。最後にGitHub上のPrivate表示、main、ファイル、remote commitをread-backしてください。まだsupport-sessionのstart、Issue作成、Cloudflare接続、merge、deployは行わないでください。"),
+    checks: ["GitHubでPrivateと表示される", "main・origin・最初のpushを確認できた"],
+    tip: "ここでprivate repoを確定するため、次の相談記録が公開教材repoや別repoへ入るのを防げます。",
     page: 33,
   },
   {
     number: "03",
-    label: "Codexに作業場所を渡す",
-    title: "制作するフォルダを開こう",
-    lead: "ChatGPTデスクトップでCodexを選び、さきほど用意したフォルダを作業場所として開きます。",
-    actions: ["ChatGPTデスクトップを開いてログインする", "左上のメニューから「Codex」を選ぶ", "フォルダを開く操作で、スターターフォルダを選ぶ"],
-    prompt: "今開いているフォルダが、今日使うスターターアプリか確認してください。まだ変更せず、見つかったファイルを初心者向けに説明してください。",
-    checks: ["Codexの画面になっている", "README.md の内容を説明してもらえた"],
+    label: "制作AIに作業場所を渡す",
+    title: "private repoのフォルダを開こう",
+    lead: "保存先が確定したフォルダを、CodexまたはClaude Codeで制作プロジェクトとして開きます。",
+    actions: ["ChatGPTデスクトップのCodex、またはClaude Codeを開く", "今作ったprivate repoのフォルダを選ぶ", "AIにrepo名・Private・originの確認だけをしてもらう"],
+    prompt: deckPrompt("open-private-repo", "制作スレッド", "今開いているフォルダが、先ほど作成・初回pushを確認した私自身のprivate GitHub repoか、安全に確認してください。repo名、Privateであること、originがそのrepoを指すことだけを確認し、remote URL、ユーザー名、メール、ローカルパス、コマンドの生出力は表示しないでください。まだsupport-sessionのstart、Issue作成、Cloudflare接続、ファイル変更は行わないでください。"),
+    checks: ["制作AIが正しいprivate repoを開いている", "別repoや公開教材repoではない"],
     tip: "表示名やボタンの位置は更新で変わることがあります。画面が違えば、そのままAI相談室へ見せます。",
     page: 34,
   },
   {
     number: "04",
-    label: "作業日誌をつなぐ",
-    title: "GitHub記録つきの制作タスクを始めよう",
-    lead: "制作タスクも同じセッションIssueを読み、成功・失敗・commitを自動で追記します。これがAI同士の引き継ぎになります。",
-    actions: ["Codexで新しい制作タスクを作る", "セッションIssueの現在地を読み取ってもらう", "最初の未完了STEPを一つだけ案内してもらう"],
-    prompt: deckPrompt("production-thread", "制作スレッド", "このプロジェクトの制作タスクを始めます。scripts/support-session.mjs の status を安全に確認し、既存のセッションIssueがあれば最後の成功、失敗、次の一手を読み、成功済みの操作を繰り返さないでください。なければstartを使ってください。一度に一操作だけ進め、結果が確定したらeventで構造化記録し、GitHubから再読み取りしてください。コード変更が成功したらテスト後に現在の作業ブランチへcommit・pushし、そのSHAをIssueへ記録してください。mergeとCloudflare公開は別の明示依頼まで行わないでください。"),
-    checks: ["セッションIssueの現在地をAIが説明できた", "最初の未完了STEPが一つだけ示された"],
-    tip: "新しいタスクでも、GitHubの作業日誌を読めば同じ場所から再開できます。",
+    label: "同梱された支援道具を確認する",
+    title: "support-sessionが使えるか確かめよう",
+    lead: "Issueを作る前に、スターターへ正しい記録ツールとスキルが入っているか確認します。",
+    actions: ["scripts/support-session.mjsがあるか確認する", "node scripts/support-session.mjs --helpを実行する", "start・consultation・artifact・historyなど必要なコマンドが表示されるか確認する"],
+    prompt: deckPrompt("support-tool-check", "制作スレッド", "このprivate repoに同梱されたサポート道具を確認してください。最初にscripts/support-session.mjsと.agents/skills/machiba-beginner-support/SKILL.mdがあるか確認し、次にnode scripts/support-session.mjs --helpだけを実行してください。helpに表示されたコマンドと引数だけを使い、存在しないコマンドを推測しないでください。不足または実行失敗ならIssueを作ったふりをせず、講師へ確認する一文を示してください。まだstart、Issue作成、Cloudflare接続は行わないでください。"),
+    checks: ["support-sessionのhelpを終了コード0で確認できた", "必要なコマンドが実際のhelpに表示された"],
+    tip: "正しい道具がなければ、この先の記録を始めず、スターターを取り直します。",
     page: 35,
   },
   {
     number: "05",
-    label: "PCの準備を確認する",
-    title: "必要な道具だけをそろえよう",
-    lead: "Codexが今のPCを確認し、足りない道具だけを見つけます。名前を覚える必要はありません。",
-    actions: ["Git・Node.js・GitHub CLI・Wranglerがあるか調べてもらう", "不足しているものの役割を説明してもらう", "公式の方法で一つずつ導入し、毎回確認する"],
-    prompt: "このPCでスターターアプリを動かす準備を確認してください。足りないものだけを公式の方法で案内し、インストールやログインの前には必ず説明してください。Wranglerはpackage.jsonとプロジェクト内だけを確認し、npxで自動取得しないでください。GitHubやCloudflareの接続確認が必要な場合は、コマンド出力を抑制して終了ステータスだけを使い、ユーザー名、メール、Account IDなどを表示しないでください。",
-    checks: ["AIが確認結果を一覧にした", "不足分の導入後に成功確認ができた"],
-    tip: "黒い画面が出ても、自分で文字を打つとは限りません。Codexが作業し、あなたは結果を確認します。",
+    label: "相談履歴を開始する",
+    title: "表示名を確認して、最初のIssueを始めよう",
+    lead: "正しいprivate repoと記録ツールを確認できたら、本人が選んだ表示名で相談履歴を始めます。",
+    actions: ["Issueで使う表示名と閲覧範囲の説明を受ける", "private repoへ保存してよいか一問で確認する", "start後にIssue番号・表示名・目的をGitHubから読み戻す"],
+    prompt: deckPrompt("consultation-start", "AI相談室", "このprivate repoで初心者サポートを始めます。最初の返答では、本名でなくてよい表示名だけを質問し、その名前がprivate repoのIssueと招待済みcollaboratorに見えることを説明してください。私が答えたら、保存してよいか一問だけ確認してください。了承後、実際の--helpに従い、--display-nameと--confirm-display-nameを使って相談Issueをstartしてください。書き込み後にGitHubからIssue番号、表示名、目的をread-backし、確認できなければ未反映と報告してください。表示名以外の個人情報、会話全文、生の出力は記録しないでください。公開repo、公開教材repo、別repoでは開始しないでください。"),
+    checks: ["表示名の保存を自分で了承した", "private IssueをGitHubからread-backできた"],
+    tip: "ここから相談・試行・失敗・解決・学び・次の一手を、会話全文ではなく構造化して残します。",
     page: 36,
   },
   {
     number: "06",
-    label: "まず動くものを見る",
-    title: "アプリを動かして開こう",
-    lead: "変更する前に、最初の見本が動くことを確認します。画面が出れば、ここから会話で育てられます。",
-    actions: ["Codexにアプリを起動してもらう", "表示されたローカルURLをブラウザで開く", "一覧・追加・更新を一度ずつ試す"],
-    prompt: "このスターターアプリをPCの中で起動してください。私が開くURLを教え、画面が表示されたら確認する場所を一つずつ案内してください。",
-    checks: ["ブラウザにアプリが表示された", "サンプルの情報を追加・変更できた"],
-    tip: "まだインターネットには公開されていません。まず自分のPCの中で安心して試します。",
+    label: "Issue開始後に外部接続する",
+    title: "プロジェクトからCloudflareへ接続しよう",
+    lead: "相談Issueを開始できた後で、プロジェクトに同梱されたWranglerからCloudflareへつなぎます。",
+    actions: ["package.jsonとプロジェクト内のWranglerを確認する", "必要な導入やブラウザ認証の前に説明を受ける", "whoamiを無出力で確認し、接続結果を相談Issueへ記録する"],
+    prompt: deckPrompt("cloudflare-connect", "制作スレッド", "このprivate repoの相談Issueをread-backできていることを最初に確認し、その後にプロジェクトとCloudflareの接続を一操作ずつ進めてください。package.jsonとプロジェクト内のWranglerだけを確認し、npxで未導入パッケージを自動取得しないでください。導入やブラウザ認証の前に目的と影響を説明し、私の返事を待ってください。whoamiは標準出力と標準エラーを抑制し終了ステータスだけで判定してください。アカウント名、メール、Account ID、認証コード、トークンは表示・記録しないでください。結果はconsultationまたはeventで構造化し、Issueからread-backしてください。まだD1作成や公開はしないでください。"),
+    checks: ["Issue開始後にCloudflareへ接続できた", "D1作成や公開はまだ行っていない"],
+    tip: "Cloudflareで止まっても、Issueに現在地が残るため同じ場所から再開できます。",
     page: 37,
   },
   {
     number: "07",
-    label: "音声で一つ頼む",
-    title: "自分らしく、一つ変えてみよう",
-    lead: "マイクを押し、画面を見ながら感じたことをそのまま話します。言い直しも話の脱線も大丈夫です。",
-    actions: ["変えたいものを一つ選ぶ", "誰が使うか、どうしたいかを音声で話す", "AIの確認質問へ答え、変更してもらう"],
-    prompt: "この画面を私向けに変えたいです。まずタイトルを『お客様連絡帳』にして、落ち着いた緑色の雰囲気にしてください。ほかに決めることがあれば、一度に一つ質問してください。",
-    checks: ["頼んだ言葉や色が画面に反映された", "自分の言葉で追加希望を伝えられた"],
-    tip: "タイトル・色・表示項目・用途のどれか一つが変われば、最初の成功です。",
+    label: "まず動くものを見る",
+    title: "アプリをPCの中で開こう",
+    lead: "変更する前に見本を動かし、画面と保存の動きを確認します。",
+    actions: ["不足する道具だけを公式手順で準備する", "Codexにアプリを起動してもらう", "一覧・追加・更新を一度ずつ試し、結果をIssueへ記録する"],
+    prompt: deckPrompt("local-run", "制作スレッド", "このスターターアプリをPCの中で動かす準備を確認し、足りないものだけを一操作ずつ案内してください。インストール前に目的と影響を説明し、私の確認を待ってください。準備後にアプリを起動し、私が開くローカルURLを教えてください。一覧、追加、更新を一項目ずつ確認し、結果を相談Issueへ構造化してread-backしてください。まだ公開はしないでください。"),
+    checks: ["ブラウザにアプリが表示された", "練習データの追加・更新を確認できた"],
+    tip: "まだインターネットには公開されていません。まず自分のPCで安心して試します。",
     page: 38,
   },
   {
     number: "08",
-    label: "見てから追加相談する",
-    title: "できた画面へ、感想を返そう",
-    lead: "一回で決めず、見て感じたことをAIへ返します。ここがバイブコーディングの中心です。",
-    actions: ["変更後の画面を自分で触る", "良かったところと違うところを話す", "一つだけ直してもらい、もう一度確認する"],
-    prompt: "見てみると、緑色が少し暗く感じました。文字はこのままで、背景だけもう少し明るくしてください。変更後に、どこを変えたか教えてください。",
-    checks: ["変更前との違いを説明できた", "追加の修正が画面へ反映された"],
+    label: "音声で頼み、見て返す",
+    title: "自分らしく、一つ変えてみよう",
+    lead: "希望を話し、出てきた画面を見て、感想をもう一度返します。ここがバイブコーディングの中心です。",
+    actions: ["タイトル・色・項目・用途から一つ選ぶ", "誰がどう使うかを音声で話す", "変更後を触り、良い点と直したい点を一つ返す"],
+    prompt: deckPrompt("voice-change", "制作スレッド", "この画面を私向けに変えたいです。まずタイトルを『お客様連絡帳』にして、落ち着いた緑色の雰囲気にしてください。ほかに決めることがあれば、一度に一つ質問してください。変更後は私が画面を確認するまで待ち、感想を聞いてから追加修正を一つだけ行ってください。相談内容、試したこと、結果、解決、学び、次の一手をconsultationで構造化し、Issueからread-backしてください。"),
+    checks: ["自分の言葉で一つ変更できた", "見た感想を返し、追加修正を確認できた"],
     tip: "『なんとなく違う』『おすすめを見せて』も立派な相談です。",
     page: 39,
   },
@@ -248,11 +253,11 @@ const practiceSteps = [
     number: "09",
     label: "作品と変更を残す",
     title: "GitHubへ記録してもらおう",
-    lead: "今できたファイルをcommit・pushし、どの変更が成功したかを同じセッションIssueへ結び付けます。Gitの操作はAIに任せ、あなたは要約を確認します。",
-    actions: ["秘密情報と変更内容をAIに確認してもらう", "テスト成功後に作業ブランチへcommit・pushしてもらう", "commit SHAがセッションIssueへ記録されたことを再確認する"],
-    prompt: deckPrompt("git-save", "制作スレッド", "今のアプリをGitHubへ保存してください。最初に秘密情報、意図しない変更、テスト結果を確認してください。問題がなければ現在の作業ブランチへcommit・pushし、commit SHAと変更の短い要約をセッションIssueへ記録して、GitHubから再読み取りしてください。mainへのmergeはまだ行わないでください。"),
-    checks: ["GitHubにcommitが保存された", "commit SHAがセッションIssueから確認できた"],
-    tip: "コードはcommit、作業の成功・失敗はIssueに残すため、次のAIが両方を確認できます。",
+    lead: "今できたファイルをcommit・pushし、変更内容と相談から得た学びを同じIssueへ結び付けます。Git操作はAIに任せ、あなたは要約を確認します。",
+    actions: ["秘密情報・意図しない変更・テスト結果を確認してもらう", "現在のbranchへcommit・pushしてもらう", "remote SHAと相談記録をIssueから読み戻す"],
+    prompt: deckPrompt("git-save", "制作スレッド", "今のアプリをGitHubへ保存してください。最初に秘密情報、意図しない変更、テスト結果を確認してください。問題がなければ現在の作業branchへcommit・pushし、live remoteで確認した40桁full SHA、変更の要約、今回の相談・解決・学び・次の一手をconsultationで同じIssueへ記録して、GitHubからread-backしてください。mainへのmergeとCloudflare公開はまだ行わないでください。"),
+    checks: ["GitHubのremoteでcommitを確認できた", "SHAと構造化相談がIssueから確認できた"],
+    tip: "コードはcommit、相談の要点はIssueに残すため、次のAIが両方を確認できます。",
     page: 40,
   },
   {
@@ -460,7 +465,7 @@ export default function Home() {
               ["準備", "使う道具を登録する"],
               ["相談", "AI相談室をつくる"],
               ["変更", "音声で一つ変える"],
-              ["公開", "できる人はネットへ公開"],
+              ["提出", "公開確認後、成果物をDriveへ提出"],
             ].map(([title, text], index) => <div key={title}><b>{index + 1}</b><h3>{title}</h3><p>{text}</p></div>)}
           </div>
           <div className="goal-card">
@@ -584,7 +589,7 @@ export default function Home() {
             <div className="sf d1"><small>情報の倉庫</small><b>Cloudflare D1</b></div>
           </div>
           <div className="google-link"><b>Googleの道具</b><p>カレンダー、スプレッドシート、ドライブなどは、必要になったときにアプリとつなぎます。</p></div>
-          <Point>Codexが作業し、成功・失敗・次の一手をGitHubへ記録します。あなたは質問に答え、結果を見て希望を伝えます。</Point>
+          <Point>Codexが作業し、相談内容・試したこと・失敗・解決方法・学び・次の一手をGitHubへ記録します。あなたは質問に答え、結果を見て希望を伝えます。</Point>
           <PageNumber value={17} />
         </section>
 
@@ -592,11 +597,11 @@ export default function Home() {
           <p className="eyebrow purple">AIとの付き合い方</p>
           <h2>相談と制作を、GitHubの作業日誌でつなぎます</h2>
           <div className="room-grid">
-            <article className="advice-room"><span>対象プロジェクトで使う</span><div className="room-icon">?</div><h3>AI相談室</h3><p>言葉の意味を聞く。現在地を整理する。GitHub Issueから最後の成功と失敗を読む。</p><b>作品ごとの相談スレッド</b></article>
+            <article className="advice-room"><span>private repoで使う</span><div className="room-icon">?</div><h3>AI相談室</h3><p>言葉の意味を聞く。現在地を整理する。GitHub Issueから相談・試行・解決・学びを読む。</p><b>作品ごとの相談スレッド</b></article>
             <div className="room-arrow">→</div>
             <article className="work-room"><span>作業ごとに作る</span><div className="room-icon">⌘</div><h3>制作スレッド</h3><p>ファイルを作り、動かし、commitする。結果を同じGitHub Issueへ自動で返す。</p><b>作業ごとに別のタスク</b></article>
           </div>
-          <div className="pin-prompt"><b>AI同士の共通記録</b><code>GitHub Issue｜AI相談セッション</code><p>会話全文ではなく、STEP・成功・失敗・次の一手だけを残します。</p></div>
+          <div className="pin-prompt"><b>AI同士の共通記録</b><code>GitHub Issue｜AI相談セッション</code><p>会話全文ではなく、相談・試行・失敗・解決・学び・次の一手を構造化して残します。</p></div>
           <PageNumber value={18} />
         </section>
 
@@ -642,7 +647,7 @@ export default function Home() {
           <PageNumber value={22} />
         </section>
 
-        <Chapter number="04" title="アカウントと接続を、一つずつ準備しよう" subtitle="作る前の準備もAIに任せます。一操作ずつ進み、画面を確認してから次へ進みます。" tone="setup-tone" />
+        <Chapter number="04" title="アカウントとGitHub接続を準備しよう" subtitle="作品を受け取る前の準備です。Cloudflareとの接続は、private repoへ相談Issueを作った後に行います。" tone="setup-tone" />
 
         {setupGuideSteps.map(item => <SetupGuidePage key={item.number} item={item} />)}
 
@@ -657,14 +662,15 @@ export default function Home() {
           <h2>ゆっくり準備して、後半で一つ作ります</h2>
           <div className="timeline">
             <div><time>13:00</time><span /><p><b>知る</b>アプリ、バイブコーディング、役割分担</p></div>
-            <div><time>14:05</time><span /><p><b>AIを準備</b>デスクトップアプリ、プロジェクトのAI相談室</p></div>
+            <div><time>14:05</time><span /><p><b>AIを準備</b>デスクトップアプリ、準備用チャット</p></div>
             <div><time>15:00</time><span /><p><b>休憩</b>15分。困っているところを個別確認</p></div>
             <div><time>15:15</time><span /><p><b>場所を準備</b>GitHub・Cloudflareの登録</p></div>
-            <div><time>15:55</time><span /><p><b>制作へ</b>スターター取得、GitHub作業日誌の開始</p></div>
-            <div><time>16:50</time><span /><p><b>一つ変える</b>タイトル、項目、色、用途を音声で依頼</p></div>
-            <div><time>17:25</time><span /><p><b>公開・振り返り</b>できる人は公開URLを確認</p></div>
+            <div><time>15:55</time><span /><p><b>作品の場所</b>スターター取得、private repo作成・初回push</p></div>
+            <div><time>16:20</time><span /><p><b>相談記録</b>repoをAIで開く、同梱ツール確認、Issue開始</p></div>
+            <div><time>16:40</time><span /><p><b>接続・制作</b>Cloudflare接続、音声で一つ変更</p></div>
+            <div><time>17:25</time><span /><p><b>公開・提出</b>公開URL確認、成果物ZIPをDriveへ提出</p></div>
           </div>
-          <div className="must-goal"><b>全員の成功</b><span>AI相談室を作る</span><span>Issue記録を始める</span><span>アプリを一つ変える</span></div>
+          <div className="must-goal"><b>全員の成功</b><span>AI相談室を作る</span><span>Issue記録を始める</span><span>一つ変えて提出する</span></div>
           <PageNumber value={44} />
         </section>
 
@@ -688,7 +694,7 @@ export default function Home() {
             <details open><summary><span>Q1</span>知らない言葉が出てきました</summary><p>「初心者にも分かる言葉で、たとえ話を使って説明してください」と相談します。</p></details>
             <details><summary><span>Q2</span>画面が説明と違います</summary><p>画面全体を撮り、パスワードやメールアドレスを隠してから見せます。</p></details>
             <details><summary><span>Q3</span>エラーの赤い文字が出ました</summary><p>省略せずにAIへ見せ、「何が起きていて、次に一つ何をすればいい？」と聞きます。</p></details>
-            <details><summary><span>Q4</span>公開まで終わりませんでした</summary><p>GitHubのセッションIssueに、最後の成功・失敗・次の一手が残ります。次のAIはIssueを読み、同じ場所から再開します。</p></details>
+            <details><summary><span>Q4</span>公開まで終わりませんでした</summary><p>GitHubの相談Issueに、相談内容・背景・試したこと・失敗・解決方法・学び・次の一手が残ります。次のAIはIssueを読み、同じ場所から再開します。</p></details>
           </div>
           <Point>分からないときに、分からないと言えることも立派な指示です。</Point>
           <PageNumber value={47} />
@@ -708,6 +714,43 @@ export default function Home() {
           <PageNumber value={48} />
         </section>
 
+        <section className="sheet drive-submit-page">
+          <p className="eyebrow blue-text">最後のSTEP</p>
+          <h2>成果物をGoogle Driveへ提出しよう</h2>
+          <p className="lead small">標準はブラウザからの提出です。AI連携は、時間と環境に余裕がある人だけが選ぶ発展ルートです。</p>
+
+          <div className="deck-drive-name-check">
+            <b>① 共有フォルダで見える名前を決める</b>
+            <p>この提出先は、リンクを知る人が閲覧・追加できる場所です。ファイル名の表示名や内容も見えます。本名でなくニックネームで大丈夫。見える範囲を確認してから使います。</p>
+            <code>{COURSE_EVENT_DATE}_表示名_成果物.zip</code>
+          </div>
+
+          <div className="deck-drive-routes">
+            <article className="standard">
+              <span>標準</span>
+              <h3>ブラウザから追加</h3>
+              <ol><li>Googleアカウントで提出先を開く</li><li>自分のZIPだけを新規追加</li><li>一覧を更新し、同じ名前を確認</li></ol>
+              <a href={GOOGLE_DRIVE_SUBMISSION_FOLDER_URL} target="_blank" rel="noreferrer">受講者用フォルダを開く ↗</a>
+              <small>他の人のファイルを開く・移動・改名・削除しない。共有権限も変えません。</small>
+            </article>
+            <article className="optional">
+              <span>任意・発展</span>
+              <h3>AIから新規アップロード</h3>
+              <ol><li>既存の公式連携を確認</li><li>なければ権限を一操作ずつ説明</li><li>接続承認と提出承認を分ける</li></ol>
+              <p>Google公式OAuth／公式コネクタだけを使います。約7分または同じ場所で3回止まったら、標準ルートへ戻ります。</p>
+              <small>APIキー・認証コード・トークンはチャットへ貼りません。</small>
+            </article>
+          </div>
+
+          <div className="deck-drive-finish">
+            <div><b>ZIPに入れない</b><p>.env ／ 秘密鍵・トークン ／ node_modules ／ .wrangler ／ 個人・顧客データ</p></div>
+            <div><b>② Drive提出を確認</b><p>一覧またはメタデータで、指定フォルダ直下に同じファイル名があることを確認。</p></div>
+            <div><b>③ Issue記録を別に確認</b><p>artifactで親・ファイル名のread-back済み結果を記録し、GitHub Issueから読み戻す。</p></div>
+          </div>
+          <p className="deck-drive-parent"><b>確認は2つです：</b>Driveで提出確認済みでも、Issueが未反映なら再アップロードしません。Issueの同期だけをやり直します。2026年8月23日18:00の講座終了後、運営は新規追加を止めるため提出先の共有権限を見直します。</p>
+          <PageNumber value={49} />
+        </section>
+
         <section className="sheet closing">
           <div className="closing-mark">街</div>
           <p className="eyebrow cream">最後に</p>
@@ -724,7 +767,7 @@ export default function Home() {
             <a href={SUPPORT_SITE_URL}>公式ガイド</a>
             <a href={SUPPORT_REPOSITORY_URL} target="_blank" rel="noreferrer">公開リポジトリ</a>
           </div>
-          <PageNumber value={49} />
+          <PageNumber value={50} />
         </section>
       </div>
     </main>

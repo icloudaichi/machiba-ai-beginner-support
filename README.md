@@ -1,6 +1,6 @@
 # 街場のAI屋さん｜初心者向け標準ガイド
 
-AI・GitHub・Cloudflareを初めて知る人へ向けた、公開の学習・サポートリポジトリです。A4縦型のカリキュラム解説サイトと、参加者自身のGitHubへ成功・失敗・次の一手を安全に記録する初心者サポートスキルを収録しています。
+AI・GitHub・Cloudflareを初めて知る人へ向けた、公開の学習・サポートリポジトリです。A4縦型のカリキュラム解説サイトと、本人確認済み表示名に紐づく相談・失敗・解決・学びを参加者自身のprivate GitHub repoへ安全に残すサポートスキルを収録しています。
 
 ## 公式URL
 
@@ -14,14 +14,15 @@ AI・GitHub・Cloudflareを初めて知る人へ向けた、公開の学習・�
 - ChatGPTデスクトップ＋Codexを基本に、Claudeデスクトップ＋Claude Codeも紹介
 - GitHub、Cloudflare、D1の役割を身近な言葉で説明
 - 対象プロジェクトを開いたCodex／Claude CodeによるAI相談室
-- 1相談案件1 Issueの安全な成功・失敗ログ
+- 1相談案件1 Issueの、再利用できる相談・失敗・解決・学び
+- 2026年8月23日のGoogle Drive成果物提出とprivate Issueへの確認記録
 - 音声で作りたいものを話す6項目
 - 2026年8月23日の5時間カリキュラム
 - 安全上の注意、持ち物、初心者向けQ&A
 
 ## AIにセットアップを相談する
 
-初心者サポートは、対象プロジェクトを開いたCodexまたはClaude Codeで使います。最初に長いレベル確認をせず、GitHub接続を確認した後、参加者自身の非公開アプリrepoに1つの進行中の相談案件につき1 Issueを作成・再開します。その後、Cloudflare接続を一つずつ確認し、成功・失敗・次の一手を構造化して記録します。
+初心者サポートは、対象プロジェクトを開いたCodexまたはClaude CodeのスレッドそのものをAI相談室として使います。標準の開始順は、スターター取得、参加者自身のprivate GitHub repo作成・Git初期化・`main`・`origin`・初回push、制作AIでそのrepoを開く、同梱`support-session`のhelp確認、表示名の保存了承とIssue開始、Cloudflare接続です。相談内容、背景、試したこと、失敗、解決方法、学び、次の一手を構造化し、次の相談で再利用します。
 
 同じcloneやその別worktreeでは`status`から続けられます。別cloneまたはローカル状態を失った場合は、明示されたIssue番号を`resume --issue`へ渡し、GitHubから再開します。似たIssueを推測で選びません。
 
@@ -32,7 +33,7 @@ AI・GitHub・Cloudflareを初めて知る人へ向けた、公開の学習・�
 質問例：
 
 ```text
-$machiba-beginner-support を使って、このプロジェクトのGitHub記録を始め、接続準備から一操作ずつ案内してください。
+$machiba-beginner-support を使って、このprivate repoの初回pushと同梱support-sessionを確認した後、私の表示名の保存了承を取り、相談履歴を始めてください。
 ```
 
 ここでいう接続は、GitHubとCloudflareを直接つなぐことではありません。
@@ -40,9 +41,11 @@ $machiba-beginner-support を使って、このプロジェクトのGitHub記録
 - PC・CodexまたはClaude CodeからGitHubへ接続できること
 - 対象プロジェクトからWranglerでCloudflareへ接続できること
 
-D1作成や公開は、最初の接続確認が終わった後の工程です。標準プロンプトが継続して許可するのは、安全なセッションIssueの作成・追記・read-backと、目的完了時のIssue closeだけです。コード変更、merge、Cloudflare公開は含みません。
+D1作成や公開は、最初の接続確認が終わった後の工程です。標準プロンプトが継続して許可するのは、本人確認済み表示名、安全な相談履歴、read-back済み成果物提出結果のprivate Issueへの作成・追記・検索・read-backと、目的完了時のIssue closeだけです。コード変更、collaborator招待、merge、Cloudflare公開、Google Driveへのアップロードは含みません。
 
-普通のChatGPT・Claudeは用語説明や目的整理だけに使い、GitHubコネクタの有無にかかわらず、この自動セッション記録は行いません。接続済み・記録済みと推測させないでください。
+2026年8月23日の成果物は、[受講者共有用Google Driveフォルダ](https://drive.google.com/drive/folders/1sEgVfferbokBUQU440bChvVYyGk338hs)へ提出します。リンク所持者が閲覧・追加できるため、標準はブラウザからの手動アップロードとし、接続承認とアップロード承認を分けます。Driveで親とファイル名を確認できた状態と、private Issueで提出記録をread-backできた状態も分けて報告します。2026年8月23日18:00の講座終了後、運営は新規追加を止めるため共有権限を見直します。詳しくは[成果物提出ガイド](./docs/participants/drive-submission.md)を確認してください。
+
+普通のChatGPT・Claudeは用語説明や目的整理だけに使い、GitHubコネクタの有無にかかわらず、この自動相談履歴は作りません。接続済み・記録済みと推測させないでください。
 
 詳しい使い方は[公開サポート資料](./docs/README.md)を確認してください。
 
@@ -50,7 +53,7 @@ D1作成や公開は、最初の接続確認が終わった後の工程です。
 
 ## 安全
 
-パスワード、認証コード、トークン、秘密鍵、カード情報、個人情報、会話全文、コマンドの生出力をチャットやIssueへ入れないでください。参加者ログは参加者自身のprivate app repoへ保存し、この公開教材repoへは投稿しません。詳しくは[安全に使うために](./SECURITY.md)を確認してください。
+パスワード、認証コード、トークン、秘密鍵、カード情報、会話全文、コマンドの生出力、表示名以外の個人情報をチャットやIssueへ入れないでください。Drive提出ZIPにも`.env`、`node_modules`、`.wrangler`、個人・顧客データを入れません。参加者の表示名、相談履歴、提出記録は、本人了承後に本人のprivate app repoへ保存し、この公開教材repoへは投稿しません。詳しくは[安全に使うために](./SECURITY.md)を確認してください。
 
 ## ローカル確認
 

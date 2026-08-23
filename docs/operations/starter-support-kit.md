@@ -46,6 +46,7 @@ package scriptは便宜上の入口であり、記録ツール本体の動作に
 
 - `.git/machiba-support-session/`に生成されたローカルセッション状態
 - Issue番号、repo ID、公開許可を含む別参加者の状態ファイル
+- 別参加者の表示名、participant marker、相談履歴
 - `.env`、`.env.local`、`.wrangler/`
 - パスワード、認証コード、トークン、秘密鍵、アカウント情報
 - 実際の参加者や顧客のデータ
@@ -59,14 +60,16 @@ package scriptは便宜上の入口であり、記録ツール本体の動作に
 - [ ] 必須同梱物が同じcommit由来でそろっている
 - [ ] `.agents`の正本と`.claude`の入口が両方ある
 - [ ] `node scripts/support-session.mjs --help`が終了コード0になる
-- [ ] helpに`start`、`resume`、`status`、`event`、`complete`、`sync`が表示される
-- [ ] helpに終了コード0・1・2と、公開repoの`--allow-public`条件が表示される
+- [ ] helpに`start`、`resume`、`status`、`event`、`consultation`、`artifact`、`history`、`complete`、`sync`が表示される
+- [ ] helpに表示名の確認フラグ、終了コード0・1・2、詳細相談はprivate repo限定という条件が表示される
 - [ ] `npm run test:support-session`または`node --test scripts/support-session*.test.mjs`が成功する
-- [ ] public拒否、private同期、別cloneのresume、worktree共有、push済みSHA、repo不一致のテストを含む
+- [ ] 表示名の明示確認、詳細相談のpublic拒否、同じ表示名の履歴検索、private同期、別cloneのresume、worktree共有、push済みSHA、repo不一致のテストを含む
+- [ ] `artifact`のprivate限定、`--folder-id`完全一致、`--parent-verified`必須、read-back必須、個別Drive URL検証、フォルダURL・認証情報付きURL拒否のテストを含む
 - [ ] [Codex向けスキル](../../.agents/skills/machiba-beginner-support/SKILL.md)のvalidatorが成功する
 - [ ] [Claude Code向け入口](../../.claude/skills/machiba-beginner-support/SKILL.md)から正本への相対パスが解決できる
 - [ ] Markdownの相対リンク切れがない
-- [ ] セッション状態、秘密情報、個人情報、生成物が配布ZIPやGit追跡へ入っていない
+- [ ] セッション状態、参加者の表示名・相談履歴、秘密情報、個人情報、生成物が配布ZIPやGit追跡へ入っていない
+- [ ] 成果物ZIPから`.env`、秘密鍵、`node_modules`、`.wrangler`、`.git`、個人・顧客データを除外する手順が参加者から確認できる
 
 現在の公開教材repoでは、まとめて次を実行できる。
 
@@ -80,12 +83,17 @@ npm test
 
 ## 参加者へ渡した後の最初の確認
 
-1. 参加者自身のアプリrepoが対象であることを確認する。
-2. 標準はprivate repoとし、公開repoなら自動記録を始めない。
-3. 対象プロジェクトのルートで`node scripts/support-session.mjs --help`を実行する。
-4. Codexでは`$machiba-beginner-support`、Claude Codeでは`/machiba-beginner-support`を呼び出す。
-5. [AI相談室の開始プロンプト](../participants/adviser-room-prompt.md)を使い、限定承認の範囲を共有する。
-6. 同じcloneに進行中セッションがあれば`status`、新規なら`start`、別cloneからの続きなら明示Issue番号で`resume`する。
+1. スターターを取得し、同梱物がそろっていることを確認する。
+2. 参加者自身のprivate app repoを作成し、Git初期化、`main`、`origin`、初回push、Private表示とremote commitを確認する。
+3. そのprivate repoをCodexまたはClaude Codeで開く。
+4. 対象プロジェクトのルートで`node scripts/support-session.mjs --help`を実行する。
+5. Codexでは`$machiba-beginner-support`、Claude Codeでは`/machiba-beginner-support`を呼び出す。
+6. [AI相談室の開始プロンプト](../participants/adviser-room-prompt.md)を使い、限定承認の範囲を共有する。
+7. 本人が希望する表示名を聞き、private repoへ保存してよいか確認する。
+8. 同じcloneに進行中セッションがあれば`status`、新規なら確認済み表示名で`start`、別cloneからの続きなら明示Issue番号で`resume`し、Issueをread-backする。
+9. Issue確認後にCloudflare接続へ進み、相談内容を`consultation`へ記録する。必要に応じて`history`で同じ表示名の過去履歴を確認する。
+10. 成果物提出では、[Google Drive提出ガイド](../participants/drive-submission.md)を使い、共有ファイル名の表示名、ZIP除外、書き込み直前承認、指定フォルダの親とファイル名のDrive read-backを確認する。
+11. `--help`に`artifact`がある場合だけ、`--folder-id 1sEgVfferbokBUQU440bChvVYyGk338hs --parent-verified`を付けてprivate Issueへ記録し、Issue read-backを別に確認する。
 
 スクリプトまたはスキルがない場合、AIに似たコマンドを推測させない。運営がスターターの同梱漏れを修正するか、自動記録なしのローカル体験へ切り替える。
 
@@ -93,10 +101,16 @@ npm test
 
 サポートキットを更新するときも、公開教材repoの1つのcommitを基準にする。
 
-1. 変更したスクリプト、lib、スキル、references、Claude入口を同じ版にそろえる。
+1. 変更したスクリプト、lib、表示名・相談履歴対応スキル、references、Claude入口を同じ版にそろえる。
 2. 専用テストと`npm test`を実行する。
 3. 新しいスターターZIPを生成する。
 4. ZIPを別フォルダへ展開し、上の配布前チェックを繰り返す。
 5. 確認したcommit SHAと配布日を運営記録へ残す。
+
+## 開催日ごとのDrive提出先
+
+2026年8月23日の提出先は、[2026.8.23開催／受講者共有用](https://drive.google.com/drive/folders/1sEgVfferbokBUQU440bChvVYyGk338hs)です。このURLと書き込み権限は公開サイトや公開教材から見えるため、2026年8月23日18:00の講座終了後、運営は新規追加を止めるため共有権限を見直します。
+
+次回開催では同じwriterフォルダを使い回しません。新しい開催日フォルダと受講者共有用フォルダを作り、参加者ガイド、スキル参照、サイトにある直接URLを更新します。権限変更は自動化せず、対象フォルダ、現在の利用状況、参加者への影響、実施時期を運営が確認してから行います。
 
 参加者repoの既存ファイルを更新する場合は、本人の作業内容を上書きしない。差分を確認し、サポートキットの対象ファイルだけを更新する。

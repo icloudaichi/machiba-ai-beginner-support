@@ -5,6 +5,7 @@ import { mkdir, open, readFile, rename, stat, unlink, writeFile } from "node:fs/
 import { dirname, isAbsolute, relative, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import {
+  DRIVE_SUBMISSION_FOLDER_ID,
   EXIT_CODES,
   EVENT_TYPES,
   SafeSessionError,
@@ -17,14 +18,22 @@ import {
   isEventKnown,
   issueMarker,
   makeEvent,
+  makeParticipantKey,
   makeSession,
   parseCliArgs,
   parseIssueNumber,
+  participantMarker,
   publicWriteDecision,
+  safeDriveFileUrl,
+  safeDisplayName,
+  safeFilename,
   safeStatusPayload,
   safeCommitSha,
   safeText,
+  safeUploadRoute,
+  unescapeMarkdown,
   validateOptions,
+  verifyDriveSubmissionFolder,
 } from "./support-session-lib.mjs";
 
 const STATE_DIRECTORY = "machiba-support-session";
@@ -40,10 +49,13 @@ const HELP_PAYLOAD = Object.freeze({
   ok: true,
   command: "help",
   usage: [
-    "support-session.mjs start --goal <一文> [--allow-public]",
+    "support-session.mjs start --goal <一文> --display-name <本人確認済み表示名> --confirm-display-name",
     "support-session.mjs resume --issue <番号> [--allow-public]",
     "support-session.mjs status",
     "support-session.mjs event --type <success|failure|blocked|info> --step <一文> --summary <一文> [--next <一文>] [--commit <push済みfull SHA>] [--allow-public]",
+    "support-session.mjs consultation --consultation <相談内容> [--background <背景>] [--tried <試したこと>] [--failure <失敗>] [--solution <解決方法>] [--learning <学び>] --next <次の一手> [--commit <push済みfull SHA>]",
+    `support-session.mjs artifact --filename <ファイル名> --folder-id ${DRIVE_SUBMISSION_FOLDER_ID} --parent-verified [--drive-url <個別ファイルURL>] --upload-route <browser|connector|api> --read-back-verified --summary <要約> --next <次の一手>`,
+    "support-session.mjs history --query <相談語> [--limit <1から10>]",
     "support-session.mjs complete --summary <一文> [--next <一文>] [--commit <push済みfull SHA>] [--allow-public]",
     "support-session.mjs sync [--allow-public]",
   ],
@@ -52,7 +64,7 @@ const HELP_PAYLOAD = Object.freeze({
     1: "入力・状態エラー",
     2: "ローカル保存済み、GitHub未確認",
   },
-  publicRepository: "公開リポジトリへの初回書き込みには--allow-publicが必要です。許可は現在のセッションだけに保存されます。",
+  publicRepository: "公開リポジトリへの一般記録には--allow-publicが必要です。表示名と相談詳細は--allow-publicがあっても記録しません。",
   sessionScope: "1リポジトリにつき進行中のサポートセッションは1件です。公開許可にはIssueの作成・コメント・完了時のcloseを含みます。",
 });
 
@@ -221,11 +233,17 @@ function assertStateShape(state, queue) {
 
     const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
     const timestampIsValid = (value) => typeof value === "string" && !Number.isNaN(Date.parse(value));
+    const hasParticipant = state.displayName !== null || state.participantKey !== null;
     if (
       state.schemaVersion !== 1 ||
       !uuidPattern.test(state.sessionId) ||
       !/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/u.test(state.repositorySlug) ||
       !(state.repositoryId === null || /^[A-Za-z0-9_=-]{3,160}$/u.test(state.repositoryId)) ||
+      (hasParticipant &&
+        (safeDisplayName(state.displayName) !== state.displayName ||
+          !/^[0-9a-f]{64}$/u.test(state.participantKey) ||
+          makeParticipantKey(state.displayName) !== state.participantKey)) ||
+      (!hasParticipant && !(state.displayName === null && state.participantKey === null)) ||
       !["active", "completing", "completed"].includes(state.phase) ||
       safeText("goal", state.goal, { required: true }) !== state.goal ||
       !timestampIsValid(state.startedAt) ||
@@ -251,12 +269,48 @@ function assertStateShape(state, queue) {
         throw new Error("event-item");
       }
       const event = item.event;
+      const consultationFields = ["consultation", "background", "tried", "failure", "solution", "learning"];
+      const artifactFieldsAreValid =
+        (!event.filename || safeFilename(event.filename) === event.filename) &&
+        safeDriveFileUrl(event.driveUrl ?? "") === (event.driveUrl ?? "") &&
+        (event.uploadRoute ? safeUploadRoute(event.uploadRoute) === event.uploadRoute : true) &&
+        (!event.submissionFolder ||
+          verifyDriveSubmissionFolder(DRIVE_SUBMISSION_FOLDER_ID, event.parentVerified) ===
+            event.submissionFolder);
       if (
         !EVENT_TYPES.includes(event.type) ||
         safeText("step", event.step, { required: true }) !== event.step ||
         safeText("summary", event.summary, { required: true }) !== event.summary ||
         safeText("next", event.next) !== event.next ||
-        safeCommitSha(event.commit) !== event.commit ||
+        safeCommitSha(event.commit ?? "") !== (event.commit ?? "") ||
+        consultationFields.some(
+          (field) => safeText(field, event[field] ?? "") !== (event[field] ?? ""),
+        ) ||
+        !artifactFieldsAreValid ||
+        (event.type === "consultation" &&
+          (!event.consultation ||
+            !event.next ||
+            event.summary !== event.consultation ||
+            event.step !== "AI相談" ||
+            event.participantKey !== state.participantKey)) ||
+        (event.type === "artifact" &&
+          (!event.filename ||
+            !event.uploadRoute ||
+            event.readBackVerified !== true ||
+            !event.submissionFolder ||
+            event.parentVerified !== true ||
+            event.participantKey !== state.participantKey ||
+            !event.summary ||
+            !event.next ||
+            event.step !== "成果物提出")) ||
+        (!["artifact", "consultation"].includes(event.type) &&
+          (event.filename ||
+            event.driveUrl ||
+            event.uploadRoute ||
+            event.readBackVerified ||
+            event.submissionFolder ||
+            event.parentVerified ||
+            event.participantKey)) ||
         !timestampIsValid(event.occurredAt) ||
         !/^[0-9a-f]{64}$/u.test(event.fingerprint) ||
         fingerprintEvent(event) !== event.fingerprint
@@ -286,10 +340,20 @@ async function loadSession(storage) {
     if (snapshot.schemaVersion !== 1) {
       throw new SafeSessionError("local_state_invalid", "ローカルの記録形式を確認できませんでした。");
     }
-    return { state: snapshot.state, queue: snapshot.queue };
+    const state = snapshot.state;
+    if (state) {
+      state.displayName ??= null;
+      state.participantKey ??= null;
+    }
+    return { state, queue: snapshot.queue };
+  }
+  const state = await readJson(storage.statePath, null);
+  if (state) {
+    state.displayName ??= null;
+    state.participantKey ??= null;
   }
   return {
-    state: await readJson(storage.statePath, null),
+    state,
     queue: await readJson(storage.queuePath, emptyQueue()),
   };
 }
@@ -356,6 +420,7 @@ async function getInitialRepositoryBinding(runner) {
   return {
     repositorySlug: repository?.nameWithOwner ?? repositorySlug,
     repositoryId: repository?.id ?? null,
+    visibility: repository?.visibility ?? null,
   };
 }
 
@@ -436,7 +501,7 @@ async function ensureIssue(runner, state) {
     "issue",
     "create",
     "--title",
-    formatIssueTitle(state.startedAt),
+    formatIssueTitle(state),
     "--body",
     formatIssueBody(state),
     "--repo",
@@ -573,6 +638,16 @@ async function readResumeIssue(runner, repositorySlug, issueNumber) {
     const startedAt = startedMatch && !Number.isNaN(Date.parse(startedMatch[1]))
       ? new Date(startedMatch[1]).toISOString()
       : new Date().toISOString();
+    const participantMatch = issue.body.match(/<!-- machiba-support-participant:([0-9a-f]{64}) -->/iu);
+    const displayNameMatch = issue.body.match(/^- 参加者の表示名：([^\r\n]+)$/mu);
+    let displayName = null;
+    let participantKey = null;
+    if (participantMatch || displayNameMatch) {
+      if (!participantMatch || !displayNameMatch) throw new Error("participant");
+      displayName = safeDisplayName(unescapeMarkdown(displayNameMatch[1]));
+      participantKey = participantMatch[1].toLowerCase();
+      if (makeParticipantKey(displayName) !== participantKey) throw new Error("participant");
+    }
     const fingerprints = new Set();
     for (const comment of issue.comments ?? []) {
       if (typeof comment.body !== "string") continue;
@@ -586,6 +661,8 @@ async function readResumeIssue(runner, repositorySlug, issueNumber) {
       sessionId: sessionMatch[1].toLowerCase(),
       startedAt,
       phase: issue.state === "CLOSED" ? "completed" : "active",
+      displayName,
+      participantKey,
       syncedFingerprints: [...fingerprints],
     };
   } catch {
@@ -596,11 +673,153 @@ async function readResumeIssue(runner, repositorySlug, issueNumber) {
   }
 }
 
+function parseHistoryLimit(value) {
+  if (value === undefined) return 5;
+  if (typeof value !== "string" || !/^(?:[1-9]|10)$/u.test(value)) {
+    throw new SafeSessionError("invalid_history_limit", "履歴件数は1から10で指定してください。入力内容は表示しません。");
+  }
+  return Number(value);
+}
+
+function parseConsultationComment(body, issueNumber, expectedParticipantKey) {
+  if (typeof body !== "string" || !body.includes("## AI相談記録")) return null;
+  const marker = body.match(
+    /<!-- machiba-support-event:[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}:([0-9a-f]{64}) -->/iu,
+  );
+  if (!marker || !body.includes(participantMarker(expectedParticipantKey))) return null;
+
+  const fieldDefinitions = [
+    ["consultation", "相談内容", true],
+    ["background", "背景", false],
+    ["tried", "試したこと", false],
+    ["failure", "起きたこと・失敗", false],
+    ["solution", "解決方法", false],
+    ["learning", "学び", false],
+    ["next", "次の一手", true],
+  ];
+
+  try {
+    const recordedMatch = body.match(/^- 記録日時：([^\r\n]+)$/mu);
+    if (!recordedMatch || Number.isNaN(Date.parse(recordedMatch[1]))) return null;
+    const record = {
+      issueNumber,
+      recordedAt: new Date(recordedMatch[1]).toISOString(),
+    };
+    for (const [field, label, required] of fieldDefinitions) {
+      const match = body.match(new RegExp(`^- ${label}：([^\\r\\n]+)$`, "mu"));
+      const value = match ? unescapeMarkdown(match[1]) : "";
+      record[field] = safeText(field, value, { required });
+    }
+    const commitMatch = body.match(/^- 関連コミット：([0-9a-f]{40})$/mu);
+    record.commit = safeCommitSha(commitMatch?.[1] ?? "");
+    const expectedFingerprint = fingerprintEvent({
+      type: "consultation",
+      step: "AI相談",
+      summary: record.consultation,
+      consultation: record.consultation,
+      background: record.background,
+      tried: record.tried,
+      failure: record.failure,
+      solution: record.solution,
+      learning: record.learning,
+      next: record.next,
+      commit: record.commit,
+      participantKey: expectedParticipantKey,
+    });
+    if (expectedFingerprint !== marker[1].toLowerCase()) return null;
+    return record;
+  } catch {
+    return null;
+  }
+}
+
+async function readConsultationHistory(runner, state, query, limit) {
+  const listed = await runner.run("gh", [
+    "issue",
+    "list",
+    "--state",
+    "all",
+    "--limit",
+    "100",
+    "--json",
+    "number,body",
+    "--repo",
+    state.repositorySlug,
+  ]);
+  if (!listed.ok) {
+    throw new SafeSessionError(
+      "history_unavailable",
+      "GitHubから相談履歴を確認できませんでした。接続後にもう一度実行してください。",
+      EXIT_CODES.queued,
+    );
+  }
+
+  let issues;
+  try {
+    issues = JSON.parse(listed.stdout).filter(
+      (issue) =>
+        Number.isSafeInteger(issue.number) &&
+        typeof issue.body === "string" &&
+        issue.body.includes(participantMarker(state.participantKey)),
+    );
+  } catch {
+    throw new SafeSessionError("history_unavailable", "相談履歴を安全に読み取れませんでした。", EXIT_CODES.queued);
+  }
+
+  const records = [];
+  for (const issue of issues.slice(0, 30)) {
+    const viewed = await runner.run("gh", [
+      "issue",
+      "view",
+      String(issue.number),
+      "--json",
+      "number,comments",
+      "--repo",
+      state.repositorySlug,
+    ]);
+    if (!viewed.ok) continue;
+    try {
+      const payload = JSON.parse(viewed.stdout);
+      if (payload.number !== issue.number || !Array.isArray(payload.comments)) continue;
+      for (const comment of payload.comments) {
+        const record = parseConsultationComment(comment.body, issue.number, state.participantKey);
+        if (record) records.push(record);
+      }
+    } catch {
+      // Skip an Issue that cannot be parsed into the safe schema.
+    }
+  }
+
+  const needle = query.toLocaleLowerCase("ja-JP");
+  return records
+    .filter((record) =>
+      [
+        record.consultation,
+        record.background,
+        record.tried,
+        record.failure,
+        record.solution,
+        record.learning,
+        record.next,
+      ]
+        .join(" ")
+        .toLocaleLowerCase("ja-JP")
+        .includes(needle),
+    )
+    .sort((left, right) => right.recordedAt.localeCompare(left.recordedAt))
+    .slice(0, limit);
+}
+
 async function syncAll({ runner, state, queue, storage }) {
   const repository = await verifyBoundRepository(runner, state);
   if (!repository) {
     await persist(storage, state, queue);
     return "queued";
+  }
+
+  if (state.displayName && repository.visibility !== "PRIVATE") {
+    await persist(storage, state, queue);
+    return "blocked-public-detail";
   }
 
   const decision = publicWriteDecision({
@@ -746,10 +965,12 @@ async function execute(argv, cwd = process.cwd()) {
         github = "not-started";
         exitCode = EXIT_CODES.ok;
       } else if (verifiedRepository) {
-        const decision = publicWriteDecision({
-          visibility: verifiedRepository.visibility,
-          allowPublic: state.publicWriteAllowed,
-        });
+        const decision = state.displayName && verifiedRepository.visibility !== "PRIVATE"
+          ? { allowed: false, status: "blocked-public-detail" }
+          : publicWriteDecision({
+              visibility: verifiedRepository.visibility,
+              allowPublic: state.publicWriteAllowed,
+            });
         github = !decision.allowed && queue.items.length > 0
           ? decision.status
           : state.issueVerified && queue.items.length === 0
@@ -769,17 +990,34 @@ async function execute(argv, cwd = process.cwd()) {
     }
 
     if (command === "start") {
-      validateOptions(options, ["goal", "allow-public"]);
+      validateOptions(options, ["goal", "display-name", "confirm-display-name", "allow-public"]);
       const goal = safeText("goal", options.goal, { required: true });
+      const hasDisplayName = options["display-name"] !== undefined;
+      if (!hasDisplayName || !options["confirm-display-name"]) {
+        throw new SafeSessionError(
+          "display_name_confirmation_required",
+          "表示名は、本人が入力内容を確認したうえで表示名と確認フラグを一緒に指定してください。入力内容は表示しません。",
+        );
+      }
+      const displayName = safeDisplayName(options["display-name"]);
+      const participantKey = makeParticipantKey(displayName);
       if (state && state.phase !== "completed") {
         throw new SafeSessionError("session_already_active", "進行中のセッションがあります。statusで確認してください。");
       }
 
       const repository = await getInitialRepositoryBinding(runner);
+      if (displayName && repository.visibility && repository.visibility !== "PRIVATE") {
+        throw new SafeSessionError(
+          "private_repository_required",
+          "表示名と相談詳細はprivate GitHubリポジトリだけに記録できます。--allow-publicでは許可できません。",
+        );
+      }
       state = makeSession({
         goal,
         repositorySlug: repository.repositorySlug,
         repositoryId: repository.repositoryId,
+        displayName,
+        participantKey,
         allowPublic: options["allow-public"],
       });
       queue = emptyQueue();
@@ -815,7 +1053,16 @@ async function execute(argv, cwd = process.cwd()) {
         throw new SafeSessionError("repository_mismatch", "開始時と異なるGitHubリポジトリでは再開できません。");
       }
       const remote = await readResumeIssue(runner, repository.repositorySlug, issueNumber);
+      if (remote.displayName && repository.visibility !== "PRIVATE") {
+        throw new SafeSessionError(
+          "private_repository_required",
+          "表示名を含む相談セッションはprivate GitHubリポジトリでだけ再開できます。",
+        );
+      }
       if (state?.issueNumber === issueNumber && state.sessionId === remote.sessionId) {
+        if (state.displayName !== remote.displayName || state.participantKey !== remote.participantKey) {
+          throw new SafeSessionError("participant_mismatch", "参加者の表示名を確認できないため再開を停止しました。");
+        }
         state.issueVerified = true;
         state.repositorySlug = repository.repositorySlug;
         state.repositoryId = repository.repositoryId;
@@ -842,6 +1089,8 @@ async function execute(argv, cwd = process.cwd()) {
           issueVerified: true,
           repositorySlug: repository.repositorySlug,
           repositoryId: repository.repositoryId,
+          displayName: remote.displayName,
+          participantKey: remote.participantKey,
           publicWriteAllowed: Boolean(options["allow-public"]),
           syncedFingerprints: remote.syncedFingerprints,
         };
@@ -864,6 +1113,158 @@ async function execute(argv, cwd = process.cwd()) {
       return {
         exitCode: github === "synced" ? EXIT_CODES.ok : EXIT_CODES.queued,
         payload: safeStatusPayload({ command, state, queue, github }),
+      };
+    }
+
+    if (command === "consultation") {
+      validateOptions(options, [
+        "consultation",
+        "background",
+        "tried",
+        "failure",
+        "solution",
+        "learning",
+        "next",
+        "commit",
+      ]);
+      requireActive(state);
+      if (!state.displayName || !state.participantKey) {
+        throw new SafeSessionError(
+          "confirmed_display_name_required",
+          "相談詳細を記録するには、本人が確認した表示名を指定してセッションを開始してください。",
+        );
+      }
+      if (verifiedRepository && verifiedRepository.visibility !== "PRIVATE") {
+        throw new SafeSessionError(
+          "private_repository_required",
+          "相談詳細はprivate GitHubリポジトリだけに記録できます。--allow-publicでは許可できません。",
+        );
+      }
+
+      const consultation = safeText("consultation", options.consultation, { required: true });
+      const event = makeEvent({
+        type: "consultation",
+        step: "AI相談",
+        summary: consultation,
+        consultation,
+        background: safeText("background", options.background),
+        tried: safeText("tried", options.tried),
+        failure: safeText("failure", options.failure),
+        solution: safeText("solution", options.solution),
+        learning: safeText("learning", options.learning),
+        next: safeText("next", options.next, { required: true }),
+        commit: await validatePushedCommit(runner, state, options.commit),
+        participantKey: state.participantKey,
+      });
+      const queued = queueEvent(state, queue, event);
+      await persist(storage, state, queue);
+      if (!queued) {
+        const github = queue.items.length === 0 && state.issueVerified ? "synced" : "queued";
+        return {
+          exitCode: github === "synced" ? EXIT_CODES.ok : EXIT_CODES.queued,
+          payload: safeStatusPayload({ command, state, queue, github, duplicate: true }),
+        };
+      }
+      const github = await syncAll({ runner, state, queue, storage });
+      return {
+        exitCode: github === "synced" ? EXIT_CODES.ok : EXIT_CODES.queued,
+        payload: safeStatusPayload({ command, state, queue, github }),
+      };
+    }
+
+    if (command === "artifact") {
+      validateOptions(options, [
+        "filename",
+        "folder-id",
+        "parent-verified",
+        "drive-url",
+        "upload-route",
+        "read-back-verified",
+        "summary",
+        "next",
+      ]);
+      requireActive(state);
+      if (!state.displayName || !state.participantKey) {
+        throw new SafeSessionError(
+          "confirmed_display_name_required",
+          "成果物を記録するには、本人が確認した表示名のセッションを開始または再開してください。",
+        );
+      }
+      if (!options["read-back-verified"]) {
+        throw new SafeSessionError(
+          "drive_read_back_required",
+          "Google Drive上のファイルを読み戻して確認した後に記録してください。",
+        );
+      }
+      const submissionFolder = verifyDriveSubmissionFolder(
+        options["folder-id"],
+        options["parent-verified"] === true,
+      );
+      if (verifiedRepository && verifiedRepository.visibility !== "PRIVATE") {
+        throw new SafeSessionError(
+          "private_repository_required",
+          "表示名と成果物情報はprivate GitHubリポジトリだけに記録できます。--allow-publicでは許可できません。",
+        );
+      }
+
+      const event = makeEvent({
+        type: "artifact",
+        step: "成果物提出",
+        summary: safeText("summary", options.summary, { required: true }),
+        next: safeText("next", options.next, { required: true }),
+        filename: safeFilename(options.filename),
+        driveUrl: safeDriveFileUrl(options["drive-url"]),
+        uploadRoute: safeUploadRoute(options["upload-route"]),
+        readBackVerified: true,
+        submissionFolder,
+        parentVerified: true,
+        participantKey: state.participantKey,
+      });
+      const queued = queueEvent(state, queue, event);
+      await persist(storage, state, queue);
+      if (!queued) {
+        const github = queue.items.length === 0 && state.issueVerified ? "synced" : "queued";
+        return {
+          exitCode: github === "synced" ? EXIT_CODES.ok : EXIT_CODES.queued,
+          payload: safeStatusPayload({ command, state, queue, github, duplicate: true }),
+        };
+      }
+      const github = await syncAll({ runner, state, queue, storage });
+      return {
+        exitCode: github === "synced" ? EXIT_CODES.ok : EXIT_CODES.queued,
+        payload: safeStatusPayload({ command, state, queue, github }),
+      };
+    }
+
+    if (command === "history") {
+      validateOptions(options, ["query", "limit"]);
+      if (!state?.displayName || !state.participantKey) {
+        throw new SafeSessionError(
+          "confirmed_display_name_required",
+          "相談履歴を確認するには、本人が確認した表示名のセッションを開始または再開してください。",
+        );
+      }
+      if (!verifiedRepository) {
+        throw new SafeSessionError(
+          "history_unavailable",
+          "GitHubへ接続できないため相談履歴を確認できません。",
+          EXIT_CODES.queued,
+        );
+      }
+      if (verifiedRepository.visibility !== "PRIVATE") {
+        throw new SafeSessionError(
+          "private_repository_required",
+          "表示名を使った相談履歴の確認はprivate GitHubリポジトリだけで行えます。",
+        );
+      }
+      const query = safeText("query", options.query, { required: true });
+      const history = await readConsultationHistory(runner, state, query, parseHistoryLimit(options.limit));
+      return {
+        exitCode: EXIT_CODES.ok,
+        payload: {
+          ...safeStatusPayload({ command, state, queue, github: "read" }),
+          history,
+        },
       };
     }
 
@@ -918,7 +1319,10 @@ async function execute(argv, cwd = process.cwd()) {
       };
     }
 
-    throw new SafeSessionError("unknown_command", "start、status、event、complete、syncのいずれかを指定してください。");
+    throw new SafeSessionError(
+      "unknown_command",
+      "start、resume、status、event、consultation、artifact、history、complete、syncのいずれかを指定してください。",
+    );
   } finally {
     await releaseLock(lockHandle, storage.lockPath);
   }
@@ -928,7 +1332,11 @@ export async function main(argv = process.argv.slice(2), cwd = process.cwd()) {
   try {
     if (
       (argv.length === 1 && (argv[0] === "--help" || argv[0] === "help")) ||
-      (argv.length === 2 && argv[1] === "--help" && ["start", "resume", "status", "event", "complete", "sync"].includes(argv[0]))
+      (argv.length === 2 &&
+        argv[1] === "--help" &&
+        ["start", "resume", "status", "event", "consultation", "artifact", "history", "complete", "sync"].includes(
+          argv[0],
+        ))
     ) {
       safeJson(HELP_PAYLOAD);
       return EXIT_CODES.ok;

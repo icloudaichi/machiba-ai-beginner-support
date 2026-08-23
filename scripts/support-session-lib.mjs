@@ -6,6 +6,8 @@ export const EVENT_TYPES = Object.freeze([
   "blocked",
   "info",
   "completed",
+  "consultation",
+  "artifact",
 ]);
 
 export const EXIT_CODES = Object.freeze({
@@ -14,12 +16,17 @@ export const EXIT_CODES = Object.freeze({
   queued: 2,
 });
 
+export const DRIVE_SUBMISSION_FOLDER_ID = "1sEgVfferbokBUQU440bChvVYyGk338hs";
+export const DRIVE_SUBMISSION_FOLDER_LABEL = "街場のAI屋さん・当日成果物フォルダ";
+
 const EVENT_LABELS = Object.freeze({
   success: "成功",
   failure: "失敗",
   blocked: "停止中",
   info: "情報",
   completed: "完了",
+  consultation: "AI相談記録",
+  artifact: "Google Drive成果物",
 });
 
 const FIELD_LIMITS = Object.freeze({
@@ -27,6 +34,15 @@ const FIELD_LIMITS = Object.freeze({
   step: 100,
   summary: 360,
   next: 240,
+  consultation: 700,
+  background: 500,
+  tried: 700,
+  failure: 700,
+  solution: 700,
+  learning: 500,
+  query: 120,
+  displayName: 40,
+  filename: 180,
 });
 
 const UNSAFE_PATTERNS = [
@@ -71,7 +87,12 @@ export function parseCliArgs(argv) {
   }
 
   const options = {};
-  const booleanFlags = new Set(["allow-public"]);
+  const booleanFlags = new Set([
+    "allow-public",
+    "confirm-display-name",
+    "read-back-verified",
+    "parent-verified",
+  ]);
 
   for (let index = 0; index < rest.length; index += 1) {
     const token = rest[index];
@@ -144,7 +165,15 @@ function hasForbiddenControlCharacter(value) {
   });
 }
 
-export function makeSession({ goal, repositorySlug, repositoryId = null, allowPublic = false, now = new Date() }) {
+export function makeSession({
+  goal,
+  repositorySlug,
+  repositoryId = null,
+  displayName = null,
+  participantKey = null,
+  allowPublic = false,
+  now = new Date(),
+}) {
   return {
     schemaVersion: 1,
     sessionId: randomUUID(),
@@ -157,12 +186,34 @@ export function makeSession({ goal, repositorySlug, repositoryId = null, allowPu
     issueVerified: false,
     repositorySlug,
     repositoryId,
+    displayName,
+    participantKey,
     publicWriteAllowed: Boolean(allowPublic),
     syncedFingerprints: [],
   };
 }
 
-export function makeEvent({ type, step, summary, next = "", commit = "", now = new Date() }) {
+export function makeEvent({
+  type,
+  step,
+  summary,
+  next = "",
+  commit = "",
+  consultation = "",
+  background = "",
+  tried = "",
+  failure = "",
+  solution = "",
+  learning = "",
+  filename = "",
+  driveUrl = "",
+  uploadRoute = "",
+  readBackVerified = false,
+  submissionFolder = "",
+  parentVerified = false,
+  participantKey = "",
+  now = new Date(),
+}) {
   if (!EVENT_TYPES.includes(type)) {
     throw new SafeSessionError("invalid_event_type", "記録の種類を確認してください。");
   }
@@ -174,6 +225,19 @@ export function makeEvent({ type, step, summary, next = "", commit = "", now = n
     summary,
     next,
     commit,
+    consultation,
+    background,
+    tried,
+    failure,
+    solution,
+    learning,
+    filename,
+    driveUrl,
+    uploadRoute,
+    readBackVerified,
+    submissionFolder,
+    parentVerified,
+    participantKey,
     occurredAt: now.toISOString(),
   };
   return { ...event, fingerprint: fingerprintEvent(event) };
@@ -186,12 +250,33 @@ export function fingerprintEvent(event) {
     event.summary,
     event.next ?? "",
     event.commit ?? "",
+    event.consultation ?? "",
+    event.background ?? "",
+    event.tried ?? "",
+    event.failure ?? "",
+    event.solution ?? "",
+    event.learning ?? "",
+    event.filename ?? "",
+    event.driveUrl ?? "",
+    event.uploadRoute ?? "",
+    Boolean(event.readBackVerified),
+    event.submissionFolder ?? "",
+    Boolean(event.parentVerified),
+    event.participantKey ?? "",
   ]);
   return createHash("sha256").update(canonical).digest("hex");
 }
 
 export function issueMarker(sessionId) {
   return `<!-- machiba-support-session:${sessionId} -->`;
+}
+
+export function participantMarker(participantKey) {
+  return `<!-- machiba-support-participant:${participantKey} -->`;
+}
+
+export function makeParticipantKey(displayName) {
+  return createHash("sha256").update(`display-name:${displayName}`).digest("hex");
 }
 
 export function eventMarker(event) {
@@ -202,27 +287,82 @@ export function eventFingerprintMarker(fingerprint) {
   return `:${fingerprint} -->`;
 }
 
-export function formatIssueTitle(startedAt) {
-  const date = startedAt.slice(0, 10);
-  return `[AI相談] サポートセッション ${date}`;
+export function formatIssueTitle(session) {
+  const date = session.startedAt.slice(0, 10);
+  return session.displayName ? `AI相談｜${session.displayName}｜${date}` : `[AI相談] サポートセッション ${date}`;
 }
 
 export function formatIssueBody(session) {
-  return [
+  const lines = [
     issueMarker(session.sessionId),
     "# AI相談セッション",
     "",
     `- 開始日時：${session.startedAt}`,
     `- 今日の目的：${escapeMarkdown(session.goal)}`,
+  ];
+  if (session.displayName && session.participantKey) {
+    lines.push(participantMarker(session.participantKey));
+    lines.push(`- 参加者の表示名：${escapeMarkdown(session.displayName)}`);
+  }
+  const privacyNote = session.displayName
+    ? "このIssueには、本人が確認した表示名と、AI相談の再利用可能な要約だけを記録します。会話全文、表示名以外の個人情報、秘密情報、生のコマンド出力は記録しません。"
+    : "このIssueには、AIとの会話全文ではなく、作業の成功・失敗・停止理由・次の一つを安全な要約として記録します。秘密情報、個人情報、生のコマンド出力は記録しません。";
+  lines.push(
     "- 状態：進行中",
     "",
     "## 記録方針",
     "",
-    "このIssueには、AIとの会話全文ではなく、作業の成功・失敗・停止理由・次の一つを安全な要約として記録します。秘密情報、個人情報、生のコマンド出力は記録しません。",
-  ].join("\n");
+    privacyNote,
+  );
+  return lines.join("\n");
 }
 
 export function formatEventComment(event) {
+  if (event.type === "artifact") {
+    const driveReference = event.driveUrl
+      ? event.driveUrl
+      : "未記録（ファイル名とread-back確認のみ）";
+    return [
+      eventMarker(event),
+      participantMarker(event.participantKey),
+      `## ${EVENT_LABELS[event.type]}`,
+      "",
+      `- 記録日時：${event.occurredAt}`,
+      `- ファイル名：${escapeMarkdown(event.filename)}`,
+      `- DriveファイルURL：${driveReference}`,
+      `- 提出先：${escapeMarkdown(event.submissionFolder)}`,
+      `- アップロード経路：${event.uploadRoute}`,
+      "- 親フォルダ確認：済",
+      "- Drive read-back確認：済（ファイル名・親フォルダ）",
+      `- 要約：${escapeMarkdown(event.summary)}`,
+      `- 次の一手：${escapeMarkdown(event.next)}`,
+    ].join("\n");
+  }
+
+  if (event.type === "consultation") {
+    const fields = [
+      ["相談内容", event.consultation],
+      ["背景", event.background],
+      ["試したこと", event.tried],
+      ["起きたこと・失敗", event.failure],
+      ["解決方法", event.solution],
+      ["学び", event.learning],
+      ["次の一手", event.next],
+    ];
+    const lines = [
+      eventMarker(event),
+      participantMarker(event.participantKey),
+      `## ${EVENT_LABELS[event.type]}`,
+      "",
+      `- 記録日時：${event.occurredAt}`,
+    ];
+    for (const [label, value] of fields) {
+      if (value) lines.push(`- ${label}：${escapeMarkdown(value)}`);
+    }
+    if (event.commit) lines.push(`- 関連コミット：${event.commit}`);
+    return lines.join("\n");
+  }
+
   const lines = [
     eventMarker(event),
     `## ${EVENT_LABELS[event.type]}`,
@@ -240,6 +380,120 @@ export function formatEventComment(event) {
   }
 
   return lines.join("\n");
+}
+
+export function safeDisplayName(value) {
+  let displayName;
+  try {
+    displayName = safeText("displayName", value, { required: true });
+  } catch {
+    throw new SafeSessionError(
+      "invalid_display_name",
+      "表示名には、本人が確認した短い名前だけを指定してください。入力内容は表示しません。",
+    );
+  }
+  if (!/^[\p{L}\p{M}\p{N} .・ー_-]{1,40}$/u.test(displayName)) {
+    throw new SafeSessionError(
+      "invalid_display_name",
+      "表示名には、本人が確認した短い名前だけを指定してください。入力内容は表示しません。",
+    );
+  }
+  return displayName;
+}
+
+export function safeFilename(value) {
+  let filename;
+  try {
+    filename = safeText("filename", value, { required: true });
+  } catch {
+    throw new SafeSessionError("invalid_filename", "ファイル名だけを指定してください。入力内容は表示しません。");
+  }
+  const lowerName = filename.toLowerCase();
+  const looksSensitive =
+    filename.startsWith(".") ||
+    /(?:^|[._ -])(?:secret|token|credentials?|passwords?|private[ _-]?key)(?:[._ -]|$)/iu.test(filename) ||
+    /(?:秘密鍵|認証情報|パスワード|トークン)/u.test(filename) ||
+    /\.(?:pem|key|p12|pfx)$/iu.test(lowerName);
+  if (/[/\\:*?"<>|]/u.test(filename) || filename === "." || filename === ".." || looksSensitive) {
+    throw new SafeSessionError("invalid_filename", "フォルダパスではなくファイル名だけを指定してください。入力内容は表示しません。");
+  }
+  return filename;
+}
+
+export function safeUploadRoute(value) {
+  if (!["browser", "connector", "api"].includes(value)) {
+    throw new SafeSessionError("invalid_upload_route", "upload routeはbrowser、connector、apiから選んでください。");
+  }
+  return value;
+}
+
+export function verifyDriveSubmissionFolder(folderId, parentVerified) {
+  if (typeof folderId !== "string" || folderId !== DRIVE_SUBMISSION_FOLDER_ID) {
+    throw new SafeSessionError(
+      "invalid_drive_submission_folder",
+      "講座で指定されたGoogle Drive提出フォルダを確認できません。入力内容は表示しません。",
+    );
+  }
+  if (parentVerified !== true) {
+    throw new SafeSessionError(
+      "drive_parent_verification_required",
+      "Driveからファイル情報を読み戻し、親フォルダが講座指定の提出先と一致することを確認してください。",
+    );
+  }
+  return DRIVE_SUBMISSION_FOLDER_LABEL;
+}
+
+export function safeDriveFileUrl(value) {
+  if (value === undefined || value === null || value === "") return "";
+  if (typeof value !== "string" || value.length > 600 || /[\r\n\u2028\u2029]/u.test(value)) {
+    throw new SafeSessionError("invalid_drive_file_url", "Google DriveのファイルURLを確認できません。入力内容は表示しません。");
+  }
+
+  let url;
+  try {
+    url = new URL(value);
+  } catch {
+    throw new SafeSessionError("invalid_drive_file_url", "Google DriveのファイルURLを確認できません。入力内容は表示しません。");
+  }
+
+  if (
+    url.protocol !== "https:" ||
+    url.username ||
+    url.password ||
+    url.port ||
+    url.hash ||
+    !["drive.google.com", "docs.google.com"].includes(url.hostname.toLowerCase())
+  ) {
+    throw new SafeSessionError("invalid_drive_file_url", "認証値を含まないGoogle DriveのファイルURLだけを指定してください。入力内容は表示しません。");
+  }
+
+  const allowedQuery = new Set(["usp"]);
+  const allowedUspValues = new Set(["sharing", "drive_link", "docs_web", "sheets_web", "slides_web"]);
+  for (const [key, queryValue] of url.searchParams) {
+    if (!allowedQuery.has(key) || !allowedUspValues.has(queryValue)) {
+      throw new SafeSessionError(
+        "invalid_drive_file_url",
+        "トークン、認証値、共有権限情報を含むURLは記録できません。入力内容は表示しません。",
+      );
+    }
+  }
+
+  const fileId = "[A-Za-z0-9_-]{10,}";
+  const drivePath = new RegExp(`^/file(?:/u/[0-9]+)?/d/${fileId}(?:/(?:view|preview|edit))?/?$`, "u");
+  const docsPath = new RegExp(
+    `^/(?:document|spreadsheets|presentation|forms|drawings)(?:/u/[0-9]+)?/d/${fileId}(?:/(?:edit|view|preview|copy))?/?$`,
+    "u",
+  );
+  const pathIsFile =
+    (url.hostname.toLowerCase() === "drive.google.com" && drivePath.test(url.pathname)) ||
+    (url.hostname.toLowerCase() === "docs.google.com" && docsPath.test(url.pathname));
+  if (!pathIsFile) {
+    throw new SafeSessionError(
+      "invalid_drive_file_url",
+      "共有フォルダではなく、drive.google.comまたはdocs.google.comの個別ファイルURLを指定してください。入力内容は表示しません。",
+    );
+  }
+  return url.toString();
 }
 
 export function safeCommitSha(value) {
@@ -280,6 +534,13 @@ export function parseIssueNumber(output) {
 
 export function escapeMarkdown(value) {
   return value.replace(/([\\`*_{}[\]()#+.!|>~-])/gu, "\\$1").replace(/</gu, "&lt;").replace(/>/gu, "&gt;");
+}
+
+export function unescapeMarkdown(value) {
+  return value
+    .replace(/\\([\\`*_{}[\]()#+.!|>~-])/gu, "$1")
+    .replace(/&lt;/gu, "<")
+    .replace(/&gt;/gu, ">");
 }
 
 export function publicWriteDecision({ visibility, allowPublic }) {
