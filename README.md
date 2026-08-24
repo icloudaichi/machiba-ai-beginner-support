@@ -5,6 +5,8 @@ AI・GitHub・Cloudflareを初めて知る人へ向けた、公開の学習・�
 ## 公式URL
 
 - サポートサイト：<https://machiba-ai-beginner-guide.daichi-dev.workers.dev/>
+- 講座後ガイド：<https://machiba-ai-beginner-guide.daichi-dev.workers.dev/after-course>
+- 投影スライド：<https://machiba-ai-beginner-guide.daichi-dev.workers.dev/lesson>
 - 公開教材リポジトリ：<https://github.com/icloudaichi/machiba-ai-beginner-support>
 - AI向けスキル：<https://raw.githubusercontent.com/icloudaichi/machiba-ai-beginner-support/main/.agents/skills/machiba-beginner-support/SKILL.md>
 

@@ -1,0 +1,607 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>バイブコーディングって、なんだろう？｜街場のAI屋さん</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root{--ink:#17322a;--green:#1f6b4f;--dark:#153f31;--mint:#e7f3ed;--yellow:#f3d77f;--cream:#f7f4ec;--white:#fff;--muted:#66766f;--line:#dce5df;--rule:#b6c4bc;--grid:#e6ede8;--gridw:#eef3ef;--blue:#e8f0f7;--pink:#f8e8e5;--orange:#fff0d6;--mono:"IBM Plex Mono",ui-monospace,monospace}
+    *{box-sizing:border-box}
+    html{scroll-snap-type:y mandatory;scroll-behavior:smooth}
+    body{margin:0;font-family:"Noto Sans JP",sans-serif;color:var(--ink);background:var(--cream)}
+    .slide{min-height:100vh;padding:60px max(6vw,30px);scroll-snap-align:start;display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden;background-color:var(--cream);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:40px 40px}
+    .slide:nth-child(even){background-color:#fff;background-image:linear-gradient(var(--gridw) 1px,transparent 1px),linear-gradient(90deg,var(--gridw) 1px,transparent 1px)}
+    .slide::before{content:"";position:absolute;inset:20px;border:1px solid #ccd8d0;pointer-events:none;z-index:0}
+    .slide>*{position:relative;z-index:1}
+    .number{position:absolute;right:34px;top:24px;font-family:var(--mono);font-size:12px;letter-spacing:.14em;color:#91a39a;z-index:1}
+    .kicker{font-family:var(--mono);font-size:13px;font-weight:500;letter-spacing:.22em;color:var(--green);margin:0 0 16px}
+    .slide h1{font-size:clamp(38px,5.6vw,72px);line-height:1.16;margin:0;letter-spacing:-.04em;font-weight:900}
+    .slide h2{font-size:clamp(27px,3.7vw,48px);line-height:1.3;margin:0 0 10px;letter-spacing:-.03em;font-weight:900}
+    .sub{font-size:clamp(16px,1.75vw,23px);line-height:1.8;color:#43574e;max-width:1080px;margin:0 0 26px}
+    .lead{font-size:clamp(16px,1.75vw,23px);line-height:1.8;color:#43574e;max-width:1080px}
+    .accent{color:var(--green)}
+    .note{margin-top:20px;font-size:13px;color:var(--muted)}
+    .note a{color:var(--green)}
+    .quote{margin-top:24px;padding:20px 26px;border-left:7px solid var(--yellow);background:var(--cream);border-radius:0 18px 18px 0;font-size:clamp(15px,1.6vw,21px);line-height:1.72;max-width:1120px}
+    .slide:nth-child(even) .quote{background:#fff;border:1px solid var(--line);border-left:7px solid var(--yellow)}
+    .grid2,.grid3,.grid4,.grid5{display:grid;gap:16px}
+    .grid2{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .grid3{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .grid4{grid-template-columns:repeat(4,minmax(0,1fr))}
+    .grid5{grid-template-columns:repeat(5,minmax(0,1fr))}
+    .card{padding:24px 22px;border:1px solid var(--line);border-radius:18px;background:var(--white);box-shadow:0 13px 40px rgba(30,70,53,.07)}
+    .card h3{margin:11px 0 7px;font-size:20px;font-weight:700}
+    .card p,.card li{margin:0;color:var(--muted);line-height:1.72;font-size:14px}
+    .card ul,.card ol{padding-left:1.2em;margin:8px 0 0}
+    .code{font-family:var(--mono);font-size:12px;letter-spacing:.18em;color:var(--green);display:block}
+    .icon{font-size:32px;line-height:1}
+    .num{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+    .num b{font-family:var(--mono);font-size:26px;font-weight:500;color:var(--green);line-height:1}
+    .num i{flex-grow:1;height:1px;background:var(--line);display:block}
+    .app-part{text-align:center;padding:30px 22px}
+    .app-part .icon{font-size:46px}
+    .app-part strong{display:block;font-size:22px;margin:10px 0 7px}
+    .equals{text-align:center;font-size:26px;font-weight:900;margin-top:20px;color:var(--green)}
+    .flow{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:center;gap:14px}
+    .flow4{display:grid;grid-template-columns:1fr auto 1fr auto 1fr auto 1fr;align-items:center;gap:10px}
+    .arrow{font-size:28px;color:var(--green);font-weight:900;text-align:center}
+    .analogy{background:var(--dark);color:#fff;border-color:var(--dark)}
+    .analogy p,.analogy li{color:#d8e7e0}
+    .analogy .code{color:var(--yellow)}
+    .tag{display:inline-block;padding:5px 10px;border-radius:20px;background:var(--mint);color:var(--green);font-size:11px;font-weight:900}
+    .role-you{background:var(--dark);color:#fff;border-color:var(--dark)}
+    .role-you p,.role-you li{color:#e5efe9}
+    .role-ai{background:var(--mint)}
+    .service-codex{background:var(--mint)}
+    .service-github{background:var(--blue)}
+    .service-cloudflare{background:var(--orange)}
+    .service-db{background:var(--pink)}
+    .architecture{position:relative;height:340px;max-width:1220px;width:100%;margin:auto}
+    .architecture svg{position:absolute;inset:0;width:100%;height:100%}
+    .node{position:absolute;width:21%;padding:16px 10px;border:1px solid var(--line);border-radius:16px;text-align:center;background:#fff;z-index:2;box-shadow:0 9px 25px rgba(24,63,49,.07)}
+    .node b{display:block;font-size:17px}
+    .node small{display:block;color:var(--muted);margin-top:5px;line-height:1.45}
+    .n1{left:1%;top:8px;background:var(--dark);color:#fff;border-color:var(--dark)}
+    .n1 small{color:#dce9e3}
+    .n2{left:28%;top:8px;background:var(--mint)}
+    .n3{left:55%;top:8px;background:var(--blue)}
+    .n4{left:28%;top:232px}
+    .n5{left:55%;top:232px;background:var(--orange)}
+    .n6{left:79%;top:232px;background:var(--pink)}
+    .room{padding:26px;border-radius:18px;border:1px solid var(--line);background:#fff}
+    .room.adviser{background:var(--blue);border-color:#cfe0ee}
+    .room.work{background:var(--orange);border-color:#f0e0c0}
+    .room h3{font-size:24px;margin:0 0 12px}
+    .room p{margin:0;line-height:1.75;color:#43574e;font-size:15px}
+    .bubble{padding:24px;border-radius:24px 24px 24px 5px;background:var(--dark);color:#fff;font-size:clamp(15px,1.55vw,21px);line-height:1.75;margin-top:18px}
+    .six{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    .six .card{padding:16px 19px;font-size:16px;font-weight:700}
+    .six .card b{color:var(--green);font-family:var(--mono);margin-right:8px}
+    .checkpoint{border-top:6px solid var(--green)}
+    .checkpoint.optional{border-top-color:var(--yellow)}
+    .plan{width:300px;display:flex;flex-direction:column;align-items:center;gap:10px}
+    .dim{width:100%;display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:11px;color:#91a39a}
+    .dim i{flex-grow:1;height:1px;background:var(--rule);display:block}
+    .tatami{width:100%;height:172px;border:2px solid var(--green);border-radius:6px;background:var(--mint);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));box-shadow:0 14px 40px rgba(30,70,53,.1)}
+    .tatami span{border-right:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+    .tatami span:nth-child(3n){border-right:0}
+    .tatami span:nth-child(n+4){border-bottom:0}
+    .plan-cap{font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:var(--green)}
+    .cover-plan{position:absolute;right:max(6vw,30px);bottom:74px;z-index:1}
+    .pill{display:inline-block;padding:14px 28px;border-radius:999px;background:var(--dark);color:#fff;font-size:clamp(16px,1.6vw,21px);font-weight:700;margin-top:8px}
+    .footer-logo{position:absolute;left:max(6vw,30px);bottom:44px;font-family:var(--mono);font-size:12px;letter-spacing:.14em;color:#91a39a;z-index:1}
+    .controls{position:fixed;z-index:10;right:18px;bottom:16px;display:flex;gap:8px}
+    .controls button,.controls .home-link{border:0;border-radius:50%;width:42px;height:42px;background:var(--dark);color:#fff;font-size:20px;box-shadow:0 8px 24px rgba(0,0,0,.2);cursor:pointer}
+    .controls .home-link{display:grid;place-items:center;text-decoration:none;background:var(--green)}
+    .controls .home-link[hidden]{display:none}
+    @media(max-width:900px){
+      html{scroll-snap-type:none}
+      .slide{padding:64px 20px;min-height:100svh;overflow:visible}
+      .slide::before{inset:10px}
+      .grid2,.grid3,.grid4,.grid5,.flow,.flow4,.six{grid-template-columns:1fr}
+      .flow .arrow,.flow4 .arrow{transform:rotate(90deg)}
+      .architecture{height:auto;display:grid;gap:9px}
+      .architecture svg{display:none}
+      .node{position:static;width:100%}
+      .node:not(:last-child)::after{content:"↓";display:block;margin:7px 0 -24px;color:var(--green)}
+      .controls{display:none}
+      .number{right:16px}
+      .cover-plan{position:static;margin-top:26px}
+      .plan{width:100%;max-width:300px}
+      .footer-logo{position:static;margin-top:26px}
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 第1部：なぜ小さく作るのか -->
+
+  <section class="slide">
+    <span class="number">SHEET 01 / 36</span>
+    <p class="kicker">MACHIBA NO AIYA — LESSON 01</p>
+    <h1>バイブコーディングって、<br><span class="accent">なんだろう？</span></h1>
+    <p class="lead" style="margin-top:24px;max-width:700px">作りたいものをAIに相談し、出てきたものを見ながら、会話で少しずつ形にするものづくりです。</p>
+    <div><span class="pill">今日は、6畳1間を建ててみる。</span></div>
+    <div class="cover-plan">
+      <div class="plan">
+        <div class="dim"><i></i>3,640<i></i></div>
+        <div class="tatami"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+        <div class="plan-cap">6 JO — ONE ROOM</div>
+      </div>
+    </div>
+    <span class="footer-logo">2026.08.23</span>
+  </section>
+
+  <section class="slide">
+    <span class="number">SHEET 02 / 36</span>
+    <h2>今日、<span class="accent">体験すること</span></h2>
+    <p class="sub">知って、準備して、相談して、変えてみて、確かめる。終わったとき、あなたの6畳1間が建っています。</p>
+    <div class="grid5">
+      <article class="card"><div class="num"><b>01</b><i></i></div><h3>知る</h3><p>アプリと家づくりの仕組み</p></article>
+      <article class="card"><div class="num"><b>02</b><i></i></div><h3>準備する</h3><p>道具とアカウント</p></article>
+      <article class="card"><div class="num"><b>03</b><i></i></div><h3>相談する</h3><p>音声で希望を話す</p></article>
+      <article class="card"><div class="num"><b>04</b><i></i></div><h3>変えてみる</h3><p>画面を一つ変更</p></article>
+      <article class="card"><div class="num"><b>05</b><i></i></div><h3>確かめる</h3><p>動きと記録を確認</p></article>
+    </div>
+    <div class="quote">今日は、AIと一緒にアプリを作るときの役割分担を知り、希望を話して、実際にアプリを変えるところまで体験します。</div>
+  </section>
+
+  <section class="slide">
+    <span class="number">SHEET 03 / 36</span>
+    <h2>なぜ、<span class="accent">今から始める</span>のか</h2>
+    <p class="sub">AIに何ができて、どこから先が無理なのか。その線は、触った人だけが自分の手で引けます。</p>
+    <div class="grid3">
+      <article class="card"><span class="code">A — LIMIT</span><h3>限界が分かる</h3><p>限界が分かるということは、そこまでは自分でできるということです。</p></article>
+      <article class="card"><span class="code">B — FIT</span><h3>自分に合う道具は自分で作る</h3><p>既製品を探して回るより、自分の仕事に合わせて作るほうが早い場面があります。</p></article>
+      <article class="card"><span class="code">C — REDO</span><h3>作り直せる</h3><p>アプリは家より作り直しやすい。見てから考え、あとで変えて構いません。</p></article>
+    </div>
+  </section>
+
+  <section class="slide">
+    <span class="number">SHEET 04 / 36</span>
+    <h2>そもそも、<span class="accent">アプリ</span>とは？</h2>
+    <p class="sub">目的に合わせて仕事をしてくれる道具です。中身は、3つに分けられます。</p>
+    <div class="grid3">
+      <article class="card app-part"><div class="icon">🖥️</div><strong>見える画面</strong><p>文字、ボタン、一覧、入力欄</p></article>
+      <article class="card app-part"><div class="icon">⚙️</div><strong>動き・ルール</strong><p>検索する、計算する、送る</p></article>
+      <article class="card app-part"><div class="icon">🗄️</div><strong>覚えておく情報</strong><p>顧客、予約、商品、メッセージ</p></article>
+    </div>
+  </section>
+
+  <section class="slide">
+    <span class="number">SHEET 05 / 36</span>
+    <h2>3つが組み合わさると、<span class="accent">使える道具</span>になる</h2>
+    <p class="sub">この3つを、AIと会話しながら少しずつ積み上げていきます。</p>
+    <div class="flow">
+      <article class="card"><span class="code">SCREEN</span><h3>画面</h3><p>利用者が見たり入力したりする</p></article>
+      <div class="arrow">＋</div>
+      <article class="card"><span class="code">LOGIC</span><h3>動き</h3><p>押したときの処理や決まり</p></article>
+      <div class="arrow">＋</div>
+      <article class="card"><span class="code">DATA</span><h3>情報</h3><p>閉じても覚えておく内容</p></article>
+    </div>
+    <p class="equals">画面 ＋ 動き ＋ 情報 ＝ アプリ</p>
+  </section>
+
+  <section class="slide">
+    <span class="number">SHEET 06 / 36</span>
+    <h2>これは、<span class="accent">DIYで家を建てる</span>ことです</h2>
+    <p class="sub">大工さんに発注するのではありません。建てるのはあなたで、AIは道具の使い方を教え、力仕事を代わってくれます。</p>
+    <div class="grid2">
+      <article class="card analogy"><span class="code">YOU</span><h3>あなたが建てる</h3><p>誰が使うか、何のためか、どんな雰囲気か。決めるのも、できたものの良し悪しを判断するのも、あなたです。</p></article>
+      <article class="card"><span class="code">AI</span><h3>AIは、道具と力仕事</h3><p>のこぎりの使い方を教え、重い材料を運び、寸法を測ります。あなたは、木の切り方を知らなくても相談できます。</p></article>
+    </div>
+    <div class="quote">アプリは家より作り直しやすいので、見てから考え、あとで変えても大丈夫です。</div>
+  </section>
+
+  <section class="slide">
+    <span class="number">SHEET 07 / 36</span>
+    <h2>しかも、<span class="accent">土地は無限</span>にあります</h2>
+    <p class="sub">サーバーの上には、いくらでも建てられます。だから、つい「自分が考えた最強のアプリ」を構想してしまいます。</p>
+    <div class="grid3">
+      <article class="card"><span class="code">LAND</span><h3>土地代がかからない</h3><p>現実の空間と違い、置き場所に限りがありません。</p></article>
+      <article class="card"><span class="code">SPEED</span><h3>すぐ建ってしまう</h3><p>「ここに棚を作って」と言えば、その場で建ちます。</p></article>
+      <article class="card analogy"><span class="code">TRAP</span><h3>だから、広げたくなる</h3><p>あれもこれもと部屋を足したくなります。ここが分かれ道です。</p></article>
+    </div>
+  </section>
+
+  <section class="slide">
+    <span class="number">SHEET 08 / 36</span>
+    <h2>設計図なしで建てると、<span class="accent">こうなります</span></h2>
+    <p class="sub">とりあえず子供部屋、寝室、風呂場、玄関。ひとつずつは建つのに、家として繋がりません。</p>
+    <div class="grid4">
+      <article class="card"><span class="code">ROOM 1</span><h3>子供部屋</h3><p>とりあえず、ここに</p></article>
+      <article class="card"><span class="code">ROOM 2</span><h3>寝室</h3><p>とりあえず、ここに</p></article>
+      <article class="card"><span class="code">ROOM 3</span><h3>風呂場</h3><p>とりあえず、ここに</p></article>
+      <article class="card"><span class="code">ROOM 4</span><h3>玄関</h3><p>とりあえず、ここに</p></article>
+    </div>
+    <div class="quote">部屋から部屋へ行くのに、いちど外に出る。そういう家ができあがります。</div>
+  </section>
+
+  <section class="slide">
+    <span class="number">SHEET 09 / 36</span>
+    <h2>もっと困るのは、<span class="accent">寸法がバラバラ</span>なこと</h2>
+    <p class="sub">ひとつずつは正しく作られています。それでも、揃っていないと住めません。</p>
+    <div class="grid4">
+      <article class="card"><span class="code">H — HEIGHT</span><h3>天井の高さ</h3><p>同じ家なのに、部屋ごとに高さが違う</p></article>
+      <article class="card"><span class="code">D — DOOR</span><h3>ドアノブ</h3><p>丸いのも、レバーも、引き戸もある</p></article>
+      <article class="card"><span class="code">K — KEY</span><h3>鍵</h3><p>部屋ごとに形が違い、覚えきれない</p></article>
+      <article class="card"><span class="code">P — PLAN</span><h3>間取り</h3><p>部屋と部屋が、うまく繋がらない</p></article>
+    </div>
+    <div class="quote">畳に半畳・6畳・8畳という基準があるように、揃った寸法があるから住みやすい家になります。</div>
+  </section>
+
+  <section class="slide">
+    <span class="number">SHEET 10 / 36</span>
+    <h2>「じゃあ、<span class="accent">設計図を先に書けば？</span>」</h2>
+    <p class="sub">それが、AIには書けません。同じことを2回頼むと、違う設計図が返ってきます。</p>
+    <div class="grid3">
+      <article class="card"><span class="code">TRY 1</span><h3>1回目</h3><p>「設計図をまとめてください」→ もっともらしいものが出てくる</p></article>
+      <article class="card"><span class="code">TRY 2</span><h3>2回目</h3><p>同じ頼み方をしても、少し違うものが出てくる</p></article>
+      <article class="card analogy"><span class="code">RESULT</span><h3>その場しのぎが積もる</h3><p>なんとなく動くものはできる。でも、後からあちこちが食い違う。</p></article>
+    </div>
+    <div class="quote">設計図は、固定してこそ設計図です。少しずつ変わるものは、設計図になりません。</div>
+  </section>
+
+  <section class="slide">
+    <span class="number">SHEET 11 / 36</span>
+    <h2>だから、まず1部屋。<br>今日建てるのは <span class="accent">6畳1間</span></h2>
+    <p class="sub">目の届く範囲なら、おかしいところに自分で気づけます。増築は、あとからできます。</p>
+    <div class="grid2" style="align-items:center">
+      <div class="plan" style="width:100%;max-width:340px">
+        <div class="dim"><i></i>3,640<i></i></div>
+        <div class="tatami"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+        <div class="plan-cap">6 JO — ONE ROOM</div>
+      </div>
+      <div>
+        <article class="card" style="margin-bottom:14px"><span class="code">SEE</span><h3>全部が見える</h3><p>どこに何があるか、自分で覚えていられます。</p></article>
+        <article class="card"><span class="code">FIX</span><h3>自分で直せる</h3><p>おかしいと思ったら、その場で気づいて直せます。</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <span class="number">SHEET 12 / 36</span>
+    <h2>そして、<span class="accent">自分が使うもの</span>を作る</h2>
+    <p class="sub">自分の家なら、雨漏りしてもシートを貼れば済みます。人に貸した瞬間、話が変わります。</p>
+    <div class="grid2">
+      <article class="card"><span class="code">FOR YOU</span><h3>自分専用なら</h3><p>不具合が出ても、その場でAIに伝えて直せます。継ぎはぎでも困りません。</p></article>
+      <article class="card analogy"><span class="code">FOR OTHERS</span><h3>人に使わせると</h3><p>検品も、責任も必要になります。今日は、そこまで行きません。</p></article>
+    </div>
+    <div class="quote">まずは、自分のワンルーム。好きなものを置いて、どこに何があるか全部わかる状態から始めます。</div>
+  </section>
+
+  <!-- 第2部：散らかる前に、置き場所を決める -->
+
+  <section class="slide">
+    <span class="number">SHEET 13 / 36</span>
+    <h2>小さく作っても、<span class="accent">数が増えると散らかります</span></h2>
+    <p class="sub">おもちゃが広がったまま片づかない状態です。作った数が増えるほど、これが効いてきます。</p>
+    <div class="grid3">
+      <article class="card"><span class="code">LOST</span><h3>どこに作ったか分からない</h3><p>デスクトップ、ダウンロード、名前のないフォルダ。探すところから始まります。</p></article>
+      <article class="card"><span class="code">MIXED</span><h3>見た目が揃わない</h3><p>作るたびに色も形も変わり、自分の作品に見えなくなります。</p></article>
+      <article class="card"><span class="code">GONE</span><h3>前の状態に戻せない</h3><p>動いていた頃のものが、どこにも残っていません。</p></article>
+    </div>
+  </section>
+
+  <section class="slide">
+    <span class="number">SHEET 14 / 36</span>
+    <h2>だから、最初から <span class="accent">2つ入れておきます</span></h2>
+    <p class="sub">あとから足すのではなく、1軒目から入れておくことで散らかりません。</p>
+    <div class="grid2">
+      <article class="card service-github"><span class="code">GITHUB</span><h3>作業の履歴を残す棚</h3><p>いつ、何を変えたのかが全部残ります。前の状態に戻すこともできます。</p></article>
+      <article class="card service-cloudflare"><span class="code">CLOUDFLARE</span><h3>アプリを置いて動かす土地</h3><p>自分のパソコンの中ではなく、インターネットの上に置きます。どこからでも開けます。</p></article>
+    </div>
+    <div class="quote">棚に入れてはいけないものがあります。パスワード、認証コード、鍵をまとめたファイル。うっかり置くと、他人に使われます。</div>
+  </section>
+
+  <section class="slide">
+    <span class="number">SHEET 15 / 36</span>
+    <h2>家を建てるには、<span class="accent">4つの役割</span>が要ります</h2>
+    <p class="sub">まず役割で理解します。サービスの名前は、そのあとで重ねます。</p>
+    <div class="grid4">
+      <article class="card"><div class="icon">🧑‍🔧</div><h3>作る人</h3><p>希望を聞いて、作り、直し、確認する</p></article>
+      <article class="card"><div class="icon">📚</div><h3>記録する場所</h3><p>設計図と変更の履歴を残す</p></article>
+      <article class="card"><div class="icon">🌐</div><h3>動かす場所</h3><p>インターネットから使えるようにする</p></article>
+      <article class="card"><div class="icon">🗃️</div><h3>覚える場所</h3><p>増えたり変わったりする情報を保存する</p></article>
+    </div>
+  </section>
+
+  <section class="slide">
+    <span class="number">SHEET 16 / 36</span>
+    <h2>その役割を担当する、<span class="accent">今日の4つ</span></h2>
+    <p class="sub">さっきの4つの役割に、そのまま名前が乗ります。</p>
+    <div class="grid4">
+      <article class="card service-codex"><span class="code">MAKER</span><h3>Codex</h3><p>作る人。ファイルを作り、直し、確認する</p></article>
+      <article class="card service-github"><span class="code">RECORD</span><h3>GitHub</h3><p>記録する場所。ファイルと変更履歴を置く</p></article>
+      <article class="card service-cloudflare"><span class="code">RUN</span><h3>Cloudflare</h3><p>動かす場所。アプリをネット上で動かす</p></article>
+      <article class="card service-db"><span class="code">STORE</span><h3>D1</h3><p>覚える場所。アプリの情報を保存する</p></article>
+    </div>
+  </section>
+
+  <section class="slide">
+    <span class="number">SHEET 17 / 36</span>
+    <h2>つなぐと、<span class="accent">こうなります</span></h2>
+    <p class="sub">今日は、この形をひと周りします。</p>
+    <div class="architecture">
+      <svg viewBox="0 0 1200 340" aria-hidden="true">
+        <defs>
+          <marker id="a" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8z" fill="#1f6b4f"/></marker>
+          <marker id="b" markerWidth="8" markerHeight="8" refX="1" refY="4" orient="auto"><path d="M8 0L0 4L8 8z" fill="#1f6b4f"/></marker>
+        </defs>
+        <g fill="none" stroke="#1f6b4f" stroke-width="3">
+          <path d="M260 54L335 54" marker-start="url(#b)" marker-end="url(#a)"/>
+          <path d="M585 54L660 54" marker-end="url(#a)"/>
+          <path d="M785 96L785 228" marker-end="url(#a)"/>
+          <path d="M580 92C650 136 690 180 742 228" marker-end="url(#a)"/>
+          <path d="M580 274L660 274" marker-start="url(#b)" marker-end="url(#a)"/>
+          <path d="M905 274L955 274" marker-start="url(#b)" marker-end="url(#a)"/>
+        </g>
+      </svg>
+      <div class="node n1"><b>あなた</b><small>目的・希望・感想</small></div>
+      <div class="node n2"><b>Codex</b><small>作る・直す・確認</small></div>
+      <div class="node n3"><b>GitHub</b><small>ファイルと変更記録</small></div>
+      <div class="node n4"><b>利用者のブラウザ</b><small>画面を見て操作</small></div>
+      <div class="node n5"><b>Cloudflare Workers</b><small>公開されたアプリ</small></div>
+      <div class="node n6"><b>Cloudflare D1</b><small>保存される情報</small></div>
+    </div>
+  </section>
+
+  <!-- 第3部：何を作るか＝どのデータを扱うか -->
+
+  <section class="slide">
+    <span class="number">SHEET 18 / 36</span>
+    <h2>では、<span class="accent">何を作るか</span></h2>
+    <p class="sub">作業を速くしたいだけなら、アプリは要りません。2つのデータを合わせて、作る・管理するときにアプリになります。</p>
+    <div class="grid2">
+      <article class="card"><span class="code">NOT AN APP</span><h3>これはアプリでなくていい</h3><p>どこかから取ってきて、加工して、どこかに投稿する。こういう作業は自動化の道具で足ります。</p></article>
+      <article class="card analogy"><span class="code">AN APP</span><h3>これはアプリになる</h3><p>2つのデータを持ってきて、突き合わせて、作る・管理する。ここからがアプリの出番です。</p></article>
+    </div>
+    <div class="quote">だから最初の質問は「何を作りたいか」ではなく、「どのデータを扱いたいか」です。</div>
+  </section>
+
+  <section class="slide">
+    <span class="number">SHEET 19 / 36</span>
+    <h2>データを組み合わせると、<span class="accent">こうなります</span></h2>
+    <p class="sub">身の回りにあるデータのうち、2つを掛け合わせてみます。</p>
+    <div class="grid3">
+      <article class="card"><span class="code">CALENDAR × TODO</span><h3>予定を組む相棒</h3><p>カレンダーとやりたいことリストを合わせると、空いている時間に何を入れるかを一緒に考えられます。</p></article>
+      <article class="card"><span class="code">MAIL × HISTORY</span><h3>自分の言葉で書く下書き係</h3><p>受信メールと、自分が過去に書いた返信を合わせると、自分の書き方で下書きが出てきます。</p></article>
+      <article class="card"><span class="code">MAIL × CHAT × LINE</span><h3>連絡を1画面にまとめる</h3><p>ばらばらの連絡先を1箇所に集めます。下書きはAI、送信ボタンを押すのは自分です。</p></article>
+    </div>
+  </section>
+
+  <section class="slide">
+    <span class="number">SHEET 20 / 36</span>
+    <h2>あなたとAIの、<span class="accent">仕事の分け方</span></h2>
+    <p class="sub">作るものが決まったら、次は役割です。ここを曖昧にすると、話が噛み合いません。</p>
+    <div class="grid2">
+      <article class="card role-you"><span class="code">YOU</span><h3>あなた</h3><ul><li>目的や困りごとを話す</li><li>できた画面を触る</li><li>好き・違う・分からないを伝える</li><li>進めてよいかを決める</li></ul></article>
+      <article class="card role-ai"><span class="code">AI</span><h3>Codex</h3><ul><li>必要なものを調べる</li><li>ファイルや設定を作る</li><li>エラーの原因を探す</li><li>動くか確かめる</li></ul></article>
+    </div>
+  </section>
+
+  <section class="slide">
+    <span class="number">SHEET 21 / 36</span>
+    <h2>話す <span class="accent">→</span> 見る <span class="accent">→</span> 伝える <span class="accent">→</span> 確かめる</h2>
+    <p class="sub">一度で決まらないのが普通です。この繰り返しが、バイブコーディングです。</p>
+    <div class="grid4">
+      <article class="card"><div class="num"><b>01</b><i></i></div><h3>話す</h3><p>困りごとや希望を伝える</p></article>
+      <article class="card"><div class="num"><b>02</b><i></i></div><h3>見る</h3><p>出てきた画面を触る</p></article>
+      <article class="card"><div class="num"><b>03</b><i></i></div><h3>伝える</h3><p>感想と追加希望を返す</p></article>
+      <article class="card"><div class="num"><b>04</b><i></i></div><h3>確かめる</h3><p>直ったか、壊れていないか見る</p></article>
+    </div>
+    <div class="quote">モデルルームを見て、間取りを相談して、住んでからリフォームする。それと同じ順番です。</div>
+  </section>
+
+  <!-- 第4部：AIへの頼み方 -->
+
+  <section class="slide">
+    <span class="number">SHEET 22 / 36</span>
+    <h2>頼みごとは、<span class="accent">6つに分けて渡します</span></h2>
+    <p class="sub">人に仕事をお願いするときに伝えることと、ほとんど同じです。</p>
+    <div class="grid3">
+      <article class="card"><div class="num"><b>01</b><i></i></div><h3>文脈</h3><p>今どういう状況で、どこまで進んでいるか</p></article>
+      <article class="card"><div class="num"><b>02</b><i></i></div><h3>目的</h3><p>何のためにやるのか、どうなれば嬉しいか</p></article>
+      <article class="card"><div class="num"><b>03</b><i></i></div><h3>素材</h3><p>何を見て考えてほしいか（ファイル・画像・過去のやりとり）</p></article>
+      <article class="card"><div class="num"><b>04</b><i></i></div><h3>やってほしいこと</h3><p>具体的な作業</p></article>
+      <article class="card"><div class="num"><b>05</b><i></i></div><h3>やってはいけないこと</h3><p>触らないでほしい範囲</p></article>
+      <article class="card"><div class="num"><b>06</b><i></i></div><h3>返してほしい形</h3><p>短くまとめて、一覧で、など</p></article>
+    </div>
+  </section>
+
+  <section class="slide">
+    <span class="number">SHEET 23 / 36</span>
+    <h2>厚くするのは、<span class="accent">最初の2つ</span>です</h2>
+    <p class="sub">禁止事項を100個並べても、守られるのは10個です。増やすところを間違えないでください。</p>
+    <div class="grid2">
+      <article class="card analogy"><span class="code">01 + 02</span><h3>文脈と目的を、たっぷり</h3><p>今どういう状況で、何のためにやるのか。ここが伝わっていれば、AIは自分で良い方法を考えます。優秀な人に仕事を渡すときと同じです。</p></article>
+      <article class="card"><span class="code">04 + 05</span><h3>指示と禁止は、最低限で</h3><p>細かく縛るほど、自分が思いついた範囲のことしか返ってきません。並べすぎると、かえって守られなくなります。</p></article>
+    </div>
+    <div class="quote">「続きが読みたくなるように書いてください」くらい、ざっくりでも構いません。決めすぎると、同じものしか出てこなくなります。</div>
+  </section>
+
+  <section class="slide">
+    <span class="number">SHEET 24 / 36</span>
+    <h2>まとまっていなくても、<span class="accent">2分話してみる</span></h2>
+    <p class="sub">文脈と目的は、話しながら整理して構いません。この6つを順番に話すだけで足ります。</p>
+    <div class="six">
+      <article class="card"><b>01</b>誰が使う？</article>
+      <article class="card"><b>02</b>今はどうしている？</article>
+      <article class="card"><b>03</b>何が面倒？</article>
+      <article class="card"><b>04</b>どうなれば嬉しい？</article>
+      <article class="card"><b>05</b>画面で何を見たい？</article>
+      <article class="card"><b>06</b>どんな雰囲気が好き？</article>
+    </div>
+    <div class="bubble">言い間違いは直さなくて大丈夫です。最後に「今話した内容を整理してください。分からないところがあれば、一度に一つずつ質問してください」と付けます。</div>
+  </section>
+
+  <!-- 第5部：準備 -->
+
+  <section class="slide">
+    <span class="number">SHEET 25 / 36</span>
+    <h2>ここから、<span class="accent">道具をそろえます</span></h2>
+    <p class="sub">まずChatGPTデスクトップアプリ。入れて、ログインして、マイクを確認するところまで。</p>
+    <div class="grid2">
+      <article class="card"><span class="code">MAC</span><h3>Mac</h3><ol><li>公式ページからダウンロード</li><li>アプリケーションへ移動</li><li>開いてブラウザでログイン</li><li>マイクの利用を確認</li></ol></article>
+      <article class="card"><span class="code">WINDOWS</span><h3>Windows</h3><ol><li>公式ページからダウンロード</li><li>インストーラーを実行</li><li>開いてブラウザでログイン</li><li>マイクの利用を確認</li></ol></article>
+    </div>
+    <p class="note">画面や名称は更新されるため、講師の当日画面と同じ場所を一緒に確認します。</p>
+  </section>
+
+  <section class="slide">
+    <span class="number">SHEET 26 / 36</span>
+    <h2>GitHubとCloudflareに、<span class="accent">登録します</span></h2>
+    <p class="sub">普段確認できるメールアドレスで。ここでつまずく人が一番多いので、ゆっくり進めます。</p>
+    <div class="flow">
+      <article class="card"><span class="code">01</span><h3>登録</h3><p>普段確認できるメールアドレスを使う</p></article>
+      <div class="arrow">→</div>
+      <article class="card"><span class="code">02</span><h3>メール認証</h3><p>届いたメールを自分で開いて確認する</p></article>
+      <div class="arrow">→</div>
+      <article class="card"><span class="code">03</span><h3>ログイン確認</h3><p>両方の画面を開ければ準備完了</p></article>
+    </div>
+    <div class="quote">パスキーが「このパソコン」と「スマホ」のどちらに入ったか、自分で覚えておいてください。次に開くときに必要です。誕生日や名前を並べたパスワードは使いません。</div>
+    <p class="note">講師もAIも、あなたのパスワードや認証コードを預かりません。カード登録を求められたら進めず、講師を呼んでください。</p>
+  </section>
+
+  <section class="slide">
+    <span class="number">SHEET 27 / 36</span>
+    <h2>AIと話す場所は、<span class="accent">ひとつ</span>です</h2>
+    <p class="sub">相談用と制作用を分けません。プロジェクトを開いた一つのスレッドで、全部やります。</p>
+    <div class="grid2">
+      <article class="room adviser"><h3>💬 普通のChatGPT・Claude</h3><p>言葉の意味を聞く、考えを整理する。説明を聞く相手です。ここではファイルを触らず、記録も残りません。</p></article>
+      <article class="room work"><h3>🛠 プロジェクトを開いたCodex・Claude Code</h3><p>相談も、制作も、記録も、すべてここで行います。あなたの作業フォルダを開いた状態で話します。</p></article>
+    </div>
+    <p class="note">同じスレッドで話し続けるから、前に何をしたかを覚えたまま次に進めます。</p>
+  </section>
+
+  <section class="slide">
+    <span class="number">SHEET 28 / 36</span>
+    <h2>先に <span class="accent">置き場所</span> を作ってから、相談を始めます</h2>
+    <p class="sub">順番が大事です。置き場所がないまま相談を始めると、あとで記録が残りません。</p>
+    <div class="grid4">
+      <article class="card"><div class="num"><b>01</b><i></i></div><h3>スターターを受け取る</h3><p>見本のフォルダを手元に置く</p></article>
+      <article class="card"><div class="num"><b>02</b><i></i></div><h3>自分の置き場を作る</h3><p>自分専用の、公開しない保管場所</p></article>
+      <article class="card"><div class="num"><b>03</b><i></i></div><h3>AIに開いてもらう</h3><p>その置き場をCodexで開く</p></article>
+      <article class="card"><div class="num"><b>04</b><i></i></div><h3>記録を始める</h3><p>表示名を決めて、相談の記録を残し始める</p></article>
+    </div>
+    <p class="note">表示名は本名でなくて構いません。何に使われ、誰に見えるかを確認してから決めます。</p>
+  </section>
+
+  <!-- 第6部：基本操作 -->
+
+  <section class="slide">
+    <span class="number">SHEET 29 / 36</span>
+    <h2>まず、パソコンの中の<span class="accent">「場所」</span>を知る</h2>
+    <p class="sub">フォルダは、箱の入れ子です。どこに置いたかが分かっていれば、AIにも渡せます。</p>
+    <div class="grid3">
+      <article class="card"><span class="code">MAC</span><h3>Mac は「書類」</h3><p>Finder の左側にある「書類」。この中に作ります。</p></article>
+      <article class="card"><span class="code">WINDOWS</span><h3>Windows は「ドキュメント」</h3><p>エクスプローラーの「ドキュメント」。同じ場所です。</p></article>
+      <article class="card analogy"><span class="code">DO NOT</span><h3>同期フォルダの中には作らない</h3><p>OneDrive や Dropbox の中に置くと、同期の途中で中身が壊れることがあります。</p></article>
+    </div>
+    <div class="quote">今日は「書類 / ドキュメント」の中に、<b>街場のAI屋さん</b> というフォルダをひとつ作ります。作るものは、全部この中です。</div>
+  </section>
+
+  <section class="slide">
+    <span class="number">SHEET 30 / 36</span>
+    <h2>ZIPは、開くのではなく <span class="accent">取り出す</span></h2>
+    <p class="sub">中身が見えても、それはまだ箱の中です。ここを飛ばすと、あとで必ず行き詰まります。</p>
+    <div class="grid2">
+      <article class="card"><span class="code">MAC</span><h3>Mac</h3><ol><li>ZIPファイルをダブルクリック</li><li>隣に同じ名前のフォルダができる</li><li>そのフォルダを使う</li></ol></article>
+      <article class="card"><span class="code">WINDOWS</span><h3>Windows</h3><ol><li>ZIPを右クリック</li><li>「すべて展開」を選ぶ</li><li>出てきたフォルダを使う</li></ol></article>
+    </div>
+    <div class="quote">よくある失敗：展開せずにZIPをダブルクリックして、中のファイルをそのまま編集してしまう。保存しても、どこにも残りません。</div>
+  </section>
+
+  <section class="slide">
+    <span class="number">SHEET 31 / 36</span>
+    <h2>ファイルには、<span class="accent">「住所」</span>があります</h2>
+    <p class="sub">この住所をコピーできると、「あのファイルを見て」がそのまま伝わります。</p>
+    <div class="grid2">
+      <article class="card"><span class="code">MAC</span><h3>Mac</h3><ol><li>ファイルを右クリック</li><li>そのまま <b>option</b> キーを押す</li><li>「◯◯のパス名をコピー」に変わる</li><li>それを選ぶ</li></ol></article>
+      <article class="card"><span class="code">WINDOWS</span><h3>Windows</h3><ol><li><b>Shift</b> を押しながら右クリック</li><li>「パスのコピー」を選ぶ</li></ol></article>
+    </div>
+    <div class="quote">コピーしたものを、いちどメモ帳に貼ってみてください。長い文字列が出てきます。それがファイルの住所です。</div>
+  </section>
+
+  <section class="slide">
+    <span class="number">SHEET 32 / 36</span>
+    <h2>素材をAIに渡す、<span class="accent">3つの方法</span></h2>
+    <p class="sub">渡せるものが増えるほど、頼めることが増えます。</p>
+    <div class="grid3">
+      <article class="card"><div class="num"><b>01</b><i></i></div><h3>ドラッグして落とす</h3><p>ファイルをつまんで、チャットの入力欄に落とす。いちばん簡単です。</p></article>
+      <article class="card"><div class="num"><b>02</b><i></i></div><h3>住所を文字で伝える</h3><p>さっきコピーしたパスを貼って、「このファイルを見てください」と書く。</p></article>
+      <article class="card"><div class="num"><b>03</b><i></i></div><h3>画面を撮って渡す</h3><p>Mac は <b>⌘ + Shift + 4</b>、Windows は <b>Win + Shift + S</b>。範囲を選んで撮り、貼り付ける。</p></article>
+    </div>
+    <div class="quote">言葉で説明しづらいものは、撮って渡すのが一番早いです。エラー画面も、参考にしたいデザインも同じです。</div>
+  </section>
+
+  <section class="slide">
+    <span class="number">SHEET 33 / 36</span>
+    <h2>渡したあとは、<span class="accent">必ず確かめる</span></h2>
+    <p class="sub">見えていないまま話が進むのが、いちばんの遠回りです。</p>
+    <div class="grid2">
+      <article class="card"><span class="code">ASK 1</span><h3>「このファイルを見てください」</h3><p>渡したつもりでも届いていないことがあります。見えているか、一言確認します。</p></article>
+      <article class="card"><span class="code">ASK 2</span><h3>「今どのフォルダを見ていますか？」</h3><p>別の場所を見たまま作業されると、変更が反映されません。</p></article>
+    </div>
+    <div class="quote">渡してはいけないもの：パスワード、認証コード、鍵の書かれたファイル、本物のお客様の情報。</div>
+  </section>
+
+  <!-- 第7部：作って、整えて、また来る -->
+
+  <section class="slide">
+    <span class="number">SHEET 34 / 36</span>
+    <h2>では、<span class="accent">一つだけ</span>変えてみます</h2>
+    <p class="sub">頼む → 画面を見る → 感想を返す。ここまでできれば成功です。</p>
+    <div class="grid4">
+      <article class="card"><div class="icon">✏️</div><h3>タイトル</h3><p>誰のためのアプリか</p></article>
+      <article class="card"><div class="icon">🎨</div><h3>色・雰囲気</h3><p>親しみやすく、落ち着いて</p></article>
+      <article class="card"><div class="icon">🧾</div><h3>表示項目</h3><p>期限、担当、重要度</p></article>
+      <article class="card"><div class="icon">🏪</div><h3>使い道</h3><p>予約、顧客、商品、相談</p></article>
+    </div>
+    <p class="note">迷ったら「おすすめを教えてください」で大丈夫です。</p>
+  </section>
+
+  <section class="slide">
+    <span class="number">SHEET 35 / 36</span>
+    <h2>見た目を良くしたいときは、<span class="accent">見本を見せる</span></h2>
+    <p class="sub">「もっといい感じにして」では伝わりません。気に入った画面を撮って、これに寄せてくださいと渡します。</p>
+    <div class="grid2">
+      <article class="card"><span class="code">REFERENCE 01</span><h3>CSS Stock</h3><p>読み込み中の動きやボタンなど、部品の見本がまとまっています。</p><p style="margin-top:8px;font-family:var(--mono);font-size:12px;color:var(--green)">pote-chil.com/css-stock/ja/loading</p></article>
+      <article class="card"><span class="code">REFERENCE 02</span><h3>UI Pocket</h3><p>スマホアプリの実際の画面が集まっています。全体の雰囲気を選ぶときに。</p><p style="margin-top:8px;font-family:var(--mono);font-size:12px;color:var(--green)">ui-pocket.com/mobile</p></article>
+    </div>
+    <div class="quote">言い方の例：「この画像みたいな雰囲気にしてください」「この読み込み中の動きを入れてください」「この配色だけ真似して、中身はそのままで」</div>
+  </section>
+
+  <section class="slide">
+    <span class="number">SHEET 36 / 36</span>
+    <h2>今日、<span class="accent">6畳1間</span>が建ちました</h2>
+    <p class="sub">建て方が分かれば、次は自分の間取りです。</p>
+    <div class="grid4">
+      <article class="card checkpoint"><div class="num"><b>01</b><i></i></div><h3>相談できた</h3><p>プロジェクトを開いて、音声で話せた</p></article>
+      <article class="card checkpoint"><div class="num"><b>02</b><i></i></div><h3>置き場ができた</h3><p>GitHubとCloudflareを準備できた</p></article>
+      <article class="card checkpoint"><div class="num"><b>03</b><i></i></div><h3>一つ変えられた</h3><p>頼んで、見て、感想を返せた</p></article>
+      <article class="card checkpoint optional"><div class="num"><b>04</b><i></i></div><h3>提出した</h3><p>できる人は共有フォルダまで</p></article>
+    </div>
+    <div class="quote">ここは、週末のゲームセンターです。一人だと家で開かない道具を、集まって触る場所。次に作ってみたいものを、ひとこと話して終わりましょう。</div>
+    <span class="footer-logo">MACHIBA NO AIYA — 2026.08.23</span>
+  </section>
+
+  <div class="controls"><a id="home" class="home-link" href="/" aria-label="サイトへ戻る" hidden>←</a><button id="prev" aria-label="前へ">↑</button><button id="next" aria-label="次へ">↓</button></div>
+  <script>
+    if (location.protocol !== 'file:') document.querySelector('#home').hidden = false;
+    const slides = [...document.querySelectorAll('.slide')];
+    let current = 0;
+    function go(d){ current = Math.max(0, Math.min(slides.length - 1, current + d)); slides[current].scrollIntoView({ behavior: 'smooth' }); }
+    document.querySelector('#prev').onclick = () => go(-1);
+    document.querySelector('#next').onclick = () => go(1);
+    addEventListener('keydown', e => {
+      if (['ArrowDown','ArrowRight',' '].includes(e.key)) { e.preventDefault(); go(1); }
+      if (['ArrowUp','ArrowLeft'].includes(e.key)) { e.preventDefault(); go(-1); }
+    });
+  </script>
+</body>
+</html>
+
