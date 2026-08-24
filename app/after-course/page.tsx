@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-const surveyUrl = "https://utage-system.com/p/67imqIfivQEy";
+const surveyUrl = "https://utage-system.com/r/695HcDadjgCI/register";
 
 const uiReferences = [
   { name: "shadcn/ui Blocks", url: "https://ui.shadcn.com/blocks", use: "ダッシュボード、ログイン、一覧画面など、完成形に近い見本を探す" },
