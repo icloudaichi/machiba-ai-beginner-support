@@ -414,6 +414,8 @@ export default function Home() {
         <div className="site-actions">
           <button className={view === "support" ? "active" : ""} onClick={() => { setView("support"); setMenuOpen(false); }}>実践サポート</button>
           <button className={view === "deck" ? "active" : ""} onClick={() => { setView("deck"); setMenuOpen(false); }}>A4教材</button>
+          <a className="site-link" href="/after-course">講座後ガイド</a>
+          <a className="site-link lesson-link" href="/lesson">投影スライド</a>
           <button className="outline-button" onClick={() => window.print()}>A4で印刷</button>
           {view === "deck" && <button className="menu-button" onClick={() => setMenuOpen(!menuOpen)} aria-expanded={menuOpen}>目次</button>}
         </div>
