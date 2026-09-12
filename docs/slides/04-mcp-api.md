@@ -1,6 +1,6 @@
-# 04 MCP・API — スライド掲載本文（15ページ）
+# 04 MCP・API — スライド掲載本文（17ページ）
 
-2026年9月12日、Canvaの本文を読み戻し、公式説明書の補足を含む15ページへ更新。投影する本文を収録する。
+2026年9月12日、Canvaの本文を読み戻し、公式説明書とSlack接続手順の補足を含む17ページへ更新。投影する本文を収録する。
 
 Canva: https://www.canva.com/design/DAHU8a-BH6s/tpt7Qwo9CXMUD_ddnu8R2g/edit
 
@@ -156,6 +156,41 @@ Claude DesktopとClaude Codeは設定方法が別です。
 秘密の値はチャットに貼らず、AIと一操作ずつ確認しましょう。
 
 画像は上記公式READMEの実画面。アプリの設定操作や接続成功を示す画面ではありません。
+
+## 16 SlackとClaude Desktopをつなぐ
+
+まず会社の管理者に、連携してよいか確認します。
+
+① カスタマイズ（Customize）を開く
+② コネクタ（Connectors）を開く
+③ 接続済みでなければ「＋」からSlackを探す
+④ 仕事場と許可内容を確認し、本人が認証する
+⑤ 練習メッセージを読み、返信案は手元に作る
+
+一つ進めたら、画面を確認。まだ送信しません。
+画面が違うときは、翻訳やAIへの質問で確認します。
+
+出典：Slack公式 Connect to Claude（2026-09-12確認）
+https://docs.slack.dev/ai/slack-mcp-server/connect-to-claude/
+
+## 17 SlackとClaude Codeをつなぐ
+
+① AIに、既存のSlack接続を変更せず確認してもらう
+② 未導入なら、管理者の許可と導入内容を確認する
+③ 本人の確認後、Claude Codeで次を入力する
+
+`/plugin install slack`
+
+④ 認証画面で、仕事場と許可内容を本人が確認する
+⑤ 接続後、許可された練習メッセージを読む
+
+通常のClaudeチャットやCodexへ、このコマンドを貼りません。
+秘密の値はチャットに貼らず、返信案もまだ送信しません。
+
+出典：Slack公式 Connect to Claude（2026-09-12確認）
+https://docs.slack.dev/ai/slack-mcp-server/connect-to-claude/
+
+第16・17ページは公式文書に基づく手順説明。参加者PCの実画面や実接続成功の証明ではない。
 
 ## 共通注記・画像の区別
 
