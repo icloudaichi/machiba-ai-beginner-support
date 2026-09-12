@@ -1,6 +1,6 @@
-# 04 MCP・API — スライド掲載本文（19ページ）
+# 04 MCP・API — スライド掲載本文（21ページ）
 
-2026年9月12日、Canvaの本文を読み戻し、公式説明書・Slack・UTAGE接続手順の補足を含む19ページへ更新。投影する本文を収録する。19ページ版PDFを確認済み。追加18・19ページは目視、既存1〜17ページは点検済み旧版との画像一致を確認。実接続・設定画面撮影は別途未確認。
+2026年9月12日、Claudeブラウザ版のSlack検索・詳細画面を追加し、21ページへ更新。投影する本文を収録する。追加20・21ページは修正版PDFで目視し、既存1〜19ページは直前版との画像一致を確認。ブラウザ版の画面例であり、Desktopの画面や認証・接続成功の証拠ではない。
 
 Canva: https://www.canva.com/design/DAHU8a-BH6s/tpt7Qwo9CXMUD_ddnu8R2g/edit
 
@@ -225,6 +225,24 @@ https://api.utage-system.com/mcp
 
 公式手順に基づく説明です。実接続の成功画面ではありません。
 出典：https://docs.utage-system.com/mcp/setup （2026-09-12確認）
+
+## 20 Claudeブラウザ版｜① Slackを探す
+
+カスタマイズ → コネクタ →「Slack」で検索
+
+画面例：2026/9/12・ブラウザ版。表示が違うときはAIに相談しましょう。
+
+画面：Claudeのコネクタ検索。会話一覧・アカウント名を表示しない状態で撮影。接続操作は行っていない。
+参照：https://claude.ai/customize/connectors/directory
+
+## 21 Claudeブラウザ版｜② 接続前に確かめる
+
+Slackの詳細を開き、接続先と利用条件を確認
+
+「Connect to Claude」は接続を始める入口。まだ接続完了ではありません。
+
+画面：Slackのコネクタ詳細。下部の作例はサービス側の例で、本人の送信結果ではない。デスクトップ版の画面ではない。
+参照：https://claude.ai/customize/connectors/directory/slack
 
 ## 共通注記・画像の区別
 
