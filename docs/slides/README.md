@@ -11,11 +11,11 @@
 | 01 座学 | 15 | [本文](./01-classroom.md) | [編集版](https://www.canva.com/design/DAHU8dU-UVs/lbSA7vbWE4i3-_8yw1zbYg/edit) |
 | 02 GitHub・Cloudflare | 18 | 再編版の同期中 | [編集版](https://www.canva.com/design/DAHU8SA9ooo/3zVPsXCR3X4KL3H2OYDG6Q/edit) |
 | 03 データベース | 10 | [本文](./03-database.md) | [編集版](https://www.canva.com/design/DAHU8bj5CeQ/MHuPqibaxJwvu8XzbCnt4A/edit) |
-| 04 MCP・API | 14 | 再編版の同期中 | [編集版](https://www.canva.com/design/DAHU8a-BH6s/tpt7Qwo9CXMUD_ddnu8R2g/edit) |
-| 05 実践FAQ | 12 | 再編版の同期中 | [編集版](https://www.canva.com/design/DAHU8ddGIPA/lCpxya7Dsl0BPwUytkBepA/edit) |
+| 04 MCP・API | 14 | [本文](./04-mcp-api.md) | [編集版](https://www.canva.com/design/DAHU8a-BH6s/tpt7Qwo9CXMUD_ddnu8R2g/edit) |
+| 05 実践FAQ | 12 | [本文](./05-practice-faq.md) | [編集版](https://www.canva.com/design/DAHU8ddGIPA/lCpxya7Dsl0BPwUytkBepA/edit) |
 | 06 実践プロンプト集 | 19 | [コピー用全文](./practical-prompt-collection.md) | [編集版](https://www.canva.com/design/DAHU86lAY6c/Rqqtnaxtoq58FKruqypmxw/edit) |
 
-03・06はPDFの全ページ表示を確認済み。01・02・04・05の最終確認は進行中です。全資料の完成宣言ではありません。Canva編集URLは閲覧権限を自動付与しません。Markdownはこのリポジトリで読めます。
+03・04・05・06はPDFの全ページ表示を確認済み。01・02の最終確認と、サービス別の接続手順・実画面資料は進行中です。表示確認は、参加者の環境で接続・操作できることを保証するものではありません。全資料の完成宣言ではありません。Canva編集URLは閲覧権限を自動付与しません。Markdownはこのリポジトリで読めます。
 
 ## 追加プロンプト
 
