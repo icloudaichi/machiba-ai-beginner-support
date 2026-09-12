@@ -1,6 +1,6 @@
 # 02 GitHub・Cloudflare — 掲載本文
 
-Canva現行18ページから2026-09-12に読み戻した本文。操作UIの読み上げ文は除外。本文は現行表示に対応し、画像やレイアウトの検証は別途PDFで行う。
+Canva現行19ページから2026-09-12に読み戻した本文。操作UIの読み上げ文は除外。本文は現行表示に対応し、画像やレイアウトの検証は別途PDFで行う。
 
 編集URL：https://www.canva.com/design/DAHU8SA9ooo/3zVPsXCR3X4KL3H2OYDG6Q/edit
 
@@ -156,3 +156,16 @@ URLを開く → 操作する → 再読み込み → 保存を確認
 
 画面は実際と異なる場合があります。
 翻訳やAIへの質問を使い、今の画面を確認しながら進めてください。
+
+## 19 補足：CodexにCloudflareの道具を追加
+
+① Pluginsを開く → ② Cloudflareを探す → ③ 提供元・許可内容を確認して追加
+
+追加済みならやり直さず、AIに「読み取りだけで接続を確認して」と相談します。
+追加とログインは別。許可画面は自分で確認し、この段階では公開しません。
+
+公式掲載例／Cloudflare Developer Documentation／CC BY 4.0（表示サイズのみ変更）
+- 公式手順：https://developers.cloudflare.com/agent-setup/codex/
+- ライセンス：https://creativecommons.org/licenses/by/4.0/
+
+講師補足：画像は公式ドキュメントの掲載例であり、参加者PCでの接続成功を示すものではありません。現在の画面と異なる場合は、翻訳やAIへの質問で確認しながら一操作ずつ進めます。

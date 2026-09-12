@@ -9,7 +9,7 @@
 | 資料 | ページ数 | 原稿 | Canva |
 | --- | --- | --- | --- |
 | 01 座学 | 15 | [本文](./01-classroom.md) | [編集版](https://www.canva.com/design/DAHU8dU-UVs/lbSA7vbWE4i3-_8yw1zbYg/edit) |
-| 02 GitHub・Cloudflare | 18 | [本文](./02-github-cloudflare.md) | [編集版](https://www.canva.com/design/DAHU8SA9ooo/3zVPsXCR3X4KL3H2OYDG6Q/edit) |
+| 02 GitHub・Cloudflare | 19 | [本文](./02-github-cloudflare.md) | [編集版](https://www.canva.com/design/DAHU8SA9ooo/3zVPsXCR3X4KL3H2OYDG6Q/edit) |
 | 03 データベース | 10 | [本文](./03-database.md) | [編集版](https://www.canva.com/design/DAHU8bj5CeQ/MHuPqibaxJwvu8XzbCnt4A/edit) |
 | 04 MCP・API | 15 | [本文](./04-mcp-api.md) | [編集版](https://www.canva.com/design/DAHU8a-BH6s/tpt7Qwo9CXMUD_ddnu8R2g/edit) |
 | 05 実践FAQ | 12 | [本文](./05-practice-faq.md) | [編集版](https://www.canva.com/design/DAHU8ddGIPA/lCpxya7Dsl0BPwUytkBepA/edit) |
