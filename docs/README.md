@@ -4,6 +4,8 @@
 
 ## 参加者が使う
 
+- [実践プロンプト集（初期診断・連携調査・Issue・再開など）](./slides/practical-prompt-collection.md)
+
 - [講座スライド原稿（座学・保存と公開・外部サービス実践）](./slides/README.md)
 - [AI相談室の開始プロンプト](./participants/adviser-room-prompt.md)
 - [成果物をGoogle Driveへ提出する](./participants/drive-submission.md)
